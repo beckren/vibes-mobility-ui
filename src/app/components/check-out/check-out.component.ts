@@ -88,7 +88,6 @@ const FULL_DATE_FORMATS = {
 })
 export class CheckOutComponent implements OnInit {
   driverStepVisible = false;
-  carGroup!: FormGroup;
   isMobile = false;
   pricingFormGroup!: FormGroup;
   driverFormGroup!: FormGroup;
@@ -96,6 +95,7 @@ export class CheckOutComponent implements OnInit {
   feeGroup: FormGroup = new FormGroup({});
   carInformationFormGroup!: FormGroup;
   paymentFormGroup!: FormGroup;
+  carGroup = new FormControl();
   CheckOutTimeControl = new FormControl();
   CheckInTimeControl = new FormControl();
   CheckOutDateControl = new FormControl();
@@ -113,6 +113,14 @@ export class CheckOutComponent implements OnInit {
 
   // Holds all uploaded files by key (e.g. 'customer-id', 'driver-license', 'additional-driver-1', etc.)
   fileMap: { [key: string]: File } = {};
+
+  get additionalFeesOnly(): Fee[] {
+    return (this.fees || []).filter(f => f.feeCategory === 'Additional');
+  }
+
+  get carGroupFeesOnly(): Fee[] {
+    return (this.fees || []).filter(f => f.feeCategory === 'CarGroup');
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -141,10 +149,6 @@ export class CheckOutComponent implements OnInit {
     this.feeGroup = this.fb.group({
       feeType: [''],
       price: [''],
-    });
-    this.carGroup = this.fb.group({
-      grA: [''],
-      grB: [''],
     });
 
     this.customerFormGroup = this.fb.group({
@@ -263,11 +267,18 @@ export class CheckOutComponent implements OnInit {
         const [ciHour, ciMin] = ciTime.split(':');
         checkinDateTime.setHours(+ciHour);
         checkinDateTime.setMinutes(+ciMin);
-        this.feeService.getAllAdditionalFees(
-          checkoutDateTime.toISOString(),
-          checkinDateTime.toISOString()
-        ).subscribe(fees => {
-          this.fees = fees;
+        const checkoutISO = checkoutDateTime.toISOString();
+        const checkinISO = checkinDateTime.toISOString();
+
+        this.fees = [];
+        this.feeService.getAllFeesByInterval(checkoutISO, checkinISO).subscribe({
+          next: (fees) => {
+            this.fees.push(...fees);
+          },
+          error: (err) => {
+            console.error('Failed to fetch fees', err);
+            this.fees = [];
+          }
         });
       });
 
@@ -606,6 +617,11 @@ export class CheckOutComponent implements OnInit {
       },
       error: (error) => {
         alert('Error calculating price: ' + error.message);
+        this.snackBar.open('Error calculating price: ' + error.message, 'Close', {
+          duration: 3000,       // auto close after 3s
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
       }
     });
   }
@@ -668,12 +684,24 @@ export class CheckOutComponent implements OnInit {
 
 
   fetchVehiclesByGroup(carGroup: string) {
-    this.vehicleService.getVehiclesByGroup(carGroup).subscribe(vehicles => {
-      this.vehicles = vehicles;
-      // Optionally reset mva if not in new list
-      const mvaControl = this.carInformationFormGroup.get('mva');
-      if (mvaControl && !vehicles.some(v => v.mva === mvaControl.value)) {
-        mvaControl.setValue('');
+    this.vehicleService.getVehiclesByGroup(carGroup).subscribe({
+      next: (vehicles) => {
+        this.vehicles = vehicles;
+        // Optionally reset mva if not in new list
+        const mvaControl = this.carInformationFormGroup.get('mva');
+        if (mvaControl && !vehicles.some(v => v.mva === mvaControl.value)) {
+          mvaControl.setValue('');
+        }
+      },
+      error: (err) => {
+        console.error('Failed to fetch vehicles by group', err);
+        this.snackBar.open('Failed to fetch vehicles for ' + carGroup + '.', 'Close', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+        // Fallback: clear current vehicles to avoid stale data
+        this.vehicles = [];
       }
     });
   }

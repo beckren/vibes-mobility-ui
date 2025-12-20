@@ -76,8 +76,9 @@
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Car Group</mat-label>
                 <mat-select formControlName="carGroup">
-                  <mat-option value="IDMR">IDMR</mat-option>
-                  <mat-option value="CDMR">CDMR</mat-option>
+                  <mat-option *ngFor="let carGroupFee of carGroupFeesOnly" [value]="carGroupFee.feeName">
+                    {{ formatFeeName(carGroupFee.feeName) }}
+                  </mat-option>
                 </mat-select>
               </mat-form-field>
             </div>
@@ -123,8 +124,8 @@
                     <mat-form-field appearance="outline" class="readonly-field">
                       <mat-label>Additional Fee</mat-label>
                       <mat-select formControlName="feeType" (selectionChange)="onFeeTypeChange($event.value, i)">
-                        <mat-option *ngFor="let fee of fees" [value]="fee.feeName">
-                          {{ formatFeeName(fee.feeName) }}
+                        <mat-option *ngFor="let additionalFee of additionalFeesOnly" [value]="additionalFee.feeName">
+                          {{ formatFeeName(additionalFee.feeName) }}
                         </mat-option>
                       </mat-select>
                     </mat-form-field>
@@ -160,8 +161,8 @@
                     <mat-form-field appearance="outline" class="readonly-field">
                       <mat-label>Max Price (€)</mat-label>
                       <mat-select formControlName="maxAmount">
-                        <mat-option *ngFor="let fee of fees" [value]="fee.maxAmount">
-                          {{ fee.maxAmount }}
+                        <mat-option *ngFor="let additionalFee of additionalFeesOnly" [value]="additionalFee.maxAmount">
+                          {{ additionalFee.maxAmount }}
                         </mat-option>
                       </mat-select>
                     </mat-form-field>
@@ -956,6 +957,7 @@
       <p><strong>Last Name:</strong> {{ customerFormGroup.get('lastName')?.value }}</p>
       <p><strong>Check Out:</strong> {{ CheckOutDateControl.value | date:'dd/MM/yyyy' }}</p>
       <p><strong>Check In:</strong> {{ CheckInDateControl.value | date:'dd/MM/yyyy' }}</p>
+      <p><strong>Car Group:</strong> {{ pricingFormGroup.get('carGroup')?.value }}</p>
       <p><strong>Extras:</strong> €{{ getExtrasTotal() }}</p>
       <p><strong>Net Amount:</strong> €{{ pricingFormGroup.get('netAmount')?.value }}</p>
       <p><strong>Gross Amount:</strong> €{{ pricingFormGroup.get('grossAmount')?.value }}</p>
