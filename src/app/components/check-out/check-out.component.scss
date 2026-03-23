@@ -85,6 +85,15 @@ button[mat-mini-fab] {
   border-radius: 10px;
 }
 
+.buttons:disabled,
+.buttons.mat-mdc-button-disabled {
+  background-color: #555 !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.6;
+}
+
 mat-horizontal-stepper {
   background-color: transparent !important;
   flex: 3;
@@ -99,6 +108,19 @@ mat-form-field {
   gap: 15px;
   margin-bottom: 15px;
 }
+
+// Wide field spanning 2 columns (e.g., for email)
+.wide-field {
+  grid-column: span 2;
+  min-width: 300px;
+}
+
+@media (max-width: 600px) {
+  .wide-field {
+    grid-column: span 1;
+  }
+}
+
 .colorwhite {
   color: white;
 }

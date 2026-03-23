@@ -42,7 +42,7 @@ export class DefaultLayoutComponent {
     { label: 'Check In', route: '/check-in', icon: 'check_circle_outline' },
     { label: 'Cars', icon: 'directions_car', route: '/vehicles' },
     { label: 'Users', route: '/users-table', icon: 'group' },
-    { label: 'Update Prices', route: '/update-prices', icon: 'attach_money' },
+    { label: 'Update Fees', route: '/update-fees', icon: 'attach_money' },
     { label: 'Help', route: '/help-page', icon: 'help_outline' },
   ];
   @ViewChild('sidenav', { static: true }) sidenav!: MatSidenav;

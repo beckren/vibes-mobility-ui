@@ -17,12 +17,13 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { FeeService } from '../../services/fee.service';
 
 @Component({
-  selector: 'app-update-prices',
+  selector: 'app-update-fees',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -37,13 +38,14 @@ import { FeeService } from '../../services/fee.service';
     MatSelectModule,
     MatIconModule,
     MatDialogModule,
+    MatTableModule,
     RouterModule,
   ],
-  templateUrl: './update-prices.component.html',
-  styleUrl: './update-prices.component.scss',
+  templateUrl: './update-fees.component.html',
+  styleUrls: ['./update-fees.component.scss'],
 })
-export class UpdatePricesComponent implements OnInit {
-  updatePricesForm!: FormGroup;
+export class UpdateFeesComponent implements OnInit {
+  updateFeesForm!: FormGroup;
   // Data for grouped select
   feeGroups = [
     {
@@ -74,6 +76,7 @@ export class UpdatePricesComponent implements OnInit {
   }
 
   allFees: any[] = []; // raw from API
+  displayedColumns = ['name', 'categoryEnum', 'interval', 'currentAmount', 'maxAmount'];
 
 
   constructor(private fb: FormBuilder, private router: Router, private feeService: FeeService) { }
@@ -81,7 +84,7 @@ export class UpdatePricesComponent implements OnInit {
 
 
   ngOnInit() {
-    this.updatePricesForm = this.fb.group({
+    this.updateFeesForm = this.fb.group({
       additionalFee: new FormControl(''),      // will hold the fee "name"
       additionalFeeType: new FormControl(''),  // Daily/Weekly/Weekend
       additionalFeeFrom: new FormControl(''),
@@ -90,20 +93,25 @@ export class UpdatePricesComponent implements OnInit {
     });
 
     this.feeService.getAllFees().subscribe(res => {
-      if (!res.isSuccess || !res.data) return;
+      const fees = res?.data;
+      if (!fees?.length) return;
 
-      this.allFees = res.data;
+      this.allFees = fees;
 
-      // Split into groups by category and map to select options
-      const carGroup = res.data.filter(f => f.categoryEnum === 'CarGroup');
-      const additional = res.data.filter(f => f.categoryEnum === 'Additional');
+      const carGroup = fees.filter(f => f.categoryEnum === 'CarGroup');
+      const additional = fees.filter(f => f.categoryEnum === 'Additional');
 
-      this.feeGroups[0].options = carGroup.map(f => ({
-        value: f.name, viewValue: f.name, category: 'CarGroup', interval: f.interval
-      }));
-      this.feeGroups[1].options = additional.map(f => ({
-        value: f.name, viewValue: f.name, category: 'Additional', interval: f.interval
-      }));
+      // Replace the whole array so Angular's change detection picks it up
+      this.feeGroups = [
+        {
+          name: 'Car Group',
+          options: carGroup.map(f => ({ value: f.name, viewValue: f.name }))
+        },
+        {
+          name: 'Additional Fees',
+          options: additional.map(f => ({ value: f.name, viewValue: f.name }))
+        }
+      ];
     });
   }
 
@@ -111,11 +119,11 @@ export class UpdatePricesComponent implements OnInit {
     this.router.navigate(['/user-profile']);
   }
   onSave() {
-  const feeName = this.updatePricesForm.value.additionalFee;      // string
-  const interval = this.updatePricesForm.value.additionalFeeType; // 'Daily'|'Weekly'|'Weekend'
-  const changeFrom = this.updatePricesForm.value.additionalFeeFrom;
-  const changeTo = this.updatePricesForm.value.additionalFeeTo;
-  const maxAmount = this.updatePricesForm.value.maxAmount ?? '0';
+  const feeName = this.updateFeesForm.value.additionalFee;      // string
+  const interval = this.updateFeesForm.value.additionalFeeType; // 'Daily'|'Weekly'|'Weekend'
+  const changeFrom = this.updateFeesForm.value.additionalFeeFrom;
+  const changeTo = this.updateFeesForm.value.additionalFeeTo;
+  const maxAmount = this.updateFeesForm.value.maxAmount ?? '0';
 
   // Find the selected fee in the loaded list so we know its Category and (true) Interval
   const matched = this.allFees.find(f => f.name === feeName && f.interval === interval);

@@ -6,64 +6,114 @@ import { VehicleService, Vehicle } from './vehicle.service';
 import { PriceService, PriceRequest } from './price.service';
 import { FeeService, Fee } from './fee.service';
 
+// Address record matching OpenAPI schema
 export interface AddressRecord {
-  street: string;
-  city: string;
+  companyName?: string;
+  addressline1: string;
+  addressline2?: string;
   postalCode: string;
+  city: string;
   country: string;
 }
 
-export interface DiscountRecord {
-  code: string;
-  amount: number;
-}
-
-export interface CheckoutPricingRecord {
-  basePrice: number;
-  currency: string; // e.g., 'EUR'
-  tax: number;
-  total: number;
-  discounts?: DiscountRecord[];
-}
-
-export interface CustomerRecord {
-  customerId?: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  address: AddressRecord;
-}
-
-export interface AdditionalDriverRecord {
-  driverId?: string;
-  firstName: string;
-  lastName: string;
+// Driver record matching OpenAPI schema
+export interface DriverRecord {
   licenseNumber: string;
-  dateOfBirth: string; // ISO date string
+  licenseCountry: string;
+  licenseIssued: string; // ISO date
+  licenseExpiry: string; // ISO date
+  licenseImageBase64: string;
 }
 
+// Person record matching OpenAPI schema
+export interface PersonRecord {
+  academicTitle?: string;
+  firstName: string;
+  lastName: string;
+  dob: string; // ISO date
+  phone: string;
+  email: string;
+  addressRecord: AddressRecord;
+  idType: string;
+  idNumber: string;
+  idExpiryDate: string; // ISO date
+  idImageBase64: string;
+}
+
+// Discount record matching OpenAPI schema
+export interface DiscountRecord {
+  percentage: string;
+  reason: string;
+  user: string;
+}
+
+// Additional fee record matching OpenAPI schema
+export interface AdditionalFeeRecord {
+  name: string;
+  amount: string;
+  amountMax: string;
+}
+
+// Checkout pricing record matching OpenAPI schema
+export interface CheckoutPricingRecord {
+  checkoutDate: string; // ISO datetime
+  expectedCheckinDate: string; // ISO datetime
+  carGroupName: string;
+  targetSalePrice?: string | null;
+  grossListSalePrice?: string | null;
+  additionalFees?: AdditionalFeeRecord[] | null;
+  discount?: DiscountRecord | null;
+}
+
+// Customer record matching OpenAPI schema
+export interface CustomerRecord {
+  driverRecord: DriverRecord;
+  personRecord: PersonRecord;
+  billingAddressRecord: AddressRecord;
+  customerNote: string;
+  driverSameAsRenter: string;
+}
+
+// Additional driver record matching OpenAPI schema
+export interface AdditionalDriverRecord {
+  driverRecord: DriverRecord;
+  personRecord: PersonRecord;
+  customerNote: string;
+}
+
+// Payment record matching OpenAPI schema
 export interface PaymentRecord {
-  method: 'credit_card' | 'cash' | 'bank_transfer' | string;
-  status: 'authorized' | 'captured' | 'failed' | 'pending' | string;
-  amount: number;
-  currency: string; // e.g., 'EUR'
-  transactionId?: string;
-  authorizedAt?: string; // ISO datetime
+  cardType: string;
+  cardNumber: string;
+  nameOnCard: string;
+  expiryDate: string; // MM/YY
+  cvv: string;
+  amountOnHold: string;
+  checkoutGrossAmount: string;
+  paymentDate: string; // ISO datetime
+  paymentStatus: string;
+  authorizationCode: string;
 }
 
+// Main checkout payload matching OpenAPI CheckoutRecord schema
 export interface CheckoutPayload {
   checkoutPricingRecord: CheckoutPricingRecord;
   customerRecord: CustomerRecord;
-  additionalDriverRecords?: AdditionalDriverRecord[];
+  additionalDriverRecords: AdditionalDriverRecord[];
   mva: string;
   paymentRecord: PaymentRecord;
 }
 
-export interface CheckoutResult {
-  success: boolean;
-  reservationId?: string;
-  message?: string;
+// Response from checkout endpoint
+export interface CheckoutResponse {
+  message: string;
+  checkout?: {
+    firstname: string;
+    lastname: string;
+    checkoutDateTime: string;
+    expectedCheckinDateTime: string;
+    rentalStatus: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -90,8 +140,8 @@ export class CheckoutService {
     return this.feeService.getAllAdditionalFeesByInterval(checkoutDateISO, checkinDateISO);
   } */
 
-  // Persist checkout (example endpoint; adjust to your API)
-  submitCheckout(payload: CheckoutPayload): Observable<CheckoutResult> {
-    return this.http.post<CheckoutResult>(`${environment.apiUrl}/checkout`, payload);
+  // Persist checkout - Bearer token is added automatically by AuthenticationInterceptor
+  submitCheckout(payload: CheckoutPayload): Observable<CheckoutResponse> {
+    return this.http.post<CheckoutResponse>(`${environment.apiUrl}/checkout`, payload);
   }
 }

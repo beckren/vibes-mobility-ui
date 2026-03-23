@@ -46,7 +46,7 @@ export class UserProfileComponent {
       //  API 
     }
   }
-  gotoPrices(){
-    this.router.navigate(['/update-prices']);
+  gotoFees(){
+    this.router.navigate(['/update-fees']);
   }
 }

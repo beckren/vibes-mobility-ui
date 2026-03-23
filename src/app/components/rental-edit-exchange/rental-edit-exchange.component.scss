@@ -89,6 +89,15 @@ button[mat-mini-fab] {
   border-radius: 10px;
 }
 
+.buttons:disabled,
+.buttons.mat-mdc-button-disabled {
+  background-color: #555 !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.6;
+}
+
 mat-horizontal-stepper {
   background-color: transparent !important;
   flex: 3;

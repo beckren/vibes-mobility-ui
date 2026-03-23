@@ -8,11 +8,13 @@ export interface Vehicle {
   carGroup: string;
   licensePlate: string;
   fuel: string;
-  carModel: string;
+  brand: string;
+  model: string;
   mileage: string;
   color: string;
   status: string;
   transmission: string;
+  year?: number;
   // Add other fields as needed
 }
 
@@ -20,7 +22,24 @@ export interface Vehicle {
 export class VehicleService {
   constructor(private http: HttpClient) {}
 
+  /**
+   * Get all vehicles from the backend.
+   */
+  getAllVehicles(): Observable<Vehicle[]> {
+    return this.http.get<Vehicle[]>(`${environment.apiUrl}/vehicle`);
+  }
+
+  /**
+   * Get vehicles filtered by car group.
+   */
   getVehiclesByGroup(carGroup: string): Observable<Vehicle[]> {
     return this.http.get<Vehicle[]>(`${environment.apiUrl}/vehicle?carGroup=${encodeURIComponent(carGroup)}`);
+  }
+
+  /**
+   * Get a single vehicle by MVA.
+   */
+  getVehicleByMva(mva: string): Observable<Vehicle> {
+    return this.http.get<Vehicle>(`${environment.apiUrl}/vehicle/${encodeURIComponent(mva)}`);
   }
 }

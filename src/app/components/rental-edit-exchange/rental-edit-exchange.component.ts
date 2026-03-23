@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, FormControl, FormsModule } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -29,6 +29,8 @@ import * as _moment from 'moment';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { Subject, merge } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { UploadOptionsComponent } from '../upload-options.component';
 import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/_service/price.service';
@@ -82,10 +84,12 @@ const FULL_DATE_FORMATS = {
     }
   ]
 })
-export class RentalEditExchangeComponent implements OnInit {
+export class RentalEditExchangeComponent implements OnInit, OnDestroy {
   driverStepVisible = false;
   carGroup!: FormGroup;
   isMobile = false;
+  canCalculate = false;
+  private destroy$ = new Subject<void>();
   pricingFormGroup!: FormGroup;
   driverFormGroup!: FormGroup;
   customerFormGroup!: FormGroup;
@@ -185,11 +189,10 @@ export class RentalEditExchangeComponent implements OnInit {
       dob: [''],
       phone: [''],
       email: [''],
-      street: [''],
-      address2: [''],
-      zip: [''],
+      addressline1: [''],
+      addressline2: [''],
+      postalCode: [''],
       country: [''],
-      houseNr: [''],
       city: [''],
       sameBillingAddress: ['yes'],
       companyName: [''],
@@ -209,10 +212,10 @@ export class RentalEditExchangeComponent implements OnInit {
         dob: [''],
         phone: [''],
         email: [''],
-        street: [''],
-        zip: [''],
+        addressline1: [''],
+        addressline2: [''],
+        postalCode: [''],
         country: [''],
-        houseNr: [''],
         city: [''],
         licenseNumber: [''],
         licenseCountry: [''],
@@ -282,17 +285,32 @@ export class RentalEditExchangeComponent implements OnInit {
       email: [''],
       street: [''],
       address2: [''],
-      zip: [''],
+      postalCode: [''],
       country: [''],
-      houseNr: [''],
       city: ['']
     });
 
     this.detectDevice();
     window.addEventListener('resize', this.detectDevice.bind(this));
 
-
+    merge(
+      this.CheckOutDateControl.valueChanges,
+      this.CheckOutTimeControl.valueChanges,
+      this.CheckInDateControl.valueChanges,
+      this.CheckInTimeControl.valueChanges,
+      this.pricingFormGroup.get('carGroup')!.valueChanges,
+      this.pricingFormGroup.get('discountPercentage')!.valueChanges,
+      this.pricingFormGroup.get('discountReason')!.valueChanges,
+      this.pricingFormGroup.get('discountAppliedBy')!.valueChanges,
+      this.additionalFees.valueChanges
+    ).pipe(takeUntil(this.destroy$)).subscribe(() => this.canCalculate = true);
   }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   updateActualCheckOut() {
     const date = this.CheckOutDateControl.value;
 
@@ -343,11 +361,11 @@ export class RentalEditExchangeComponent implements OnInit {
           dob: renterDetails.dob,
           phone: renterDetails.phone,
           email: renterDetails.email,
-          street: renterDetails.street,
-          zip: renterDetails.zip,
-          country: renterDetails.country,
-          houseNr: renterDetails.houseNr,
+          addressline1: renterDetails.addressline1,
+          addressline2: renterDetails.addressline2,
+          postalCode: renterDetails.postalCode,
           city: renterDetails.city,
+          country: renterDetails.country,
           licenseNumber: renterDetails.licenseNumber,
           licenseCountry: renterDetails.licenseCountry,
           licenseExpiry: renterDetails.licenseExpiry,
@@ -371,11 +389,10 @@ export class RentalEditExchangeComponent implements OnInit {
       dob: [''],
       phone: [''],
       email: [''],
-      street: [''],
-      zip: [''],
-      country: [''],
-      houseNr: [''],
+      addressline1: [''],
+      postalCode: [''],
       city: [''],
+      country: [''],
       licenseNumber: [''],
       licenseCountry: [''],
       licenseExpiry: [''],
@@ -475,10 +492,12 @@ export class RentalEditExchangeComponent implements OnInit {
     if (this.showAdditionalFees && this.additionalFees.length === 0) {
       this.addAdditionalFee();
     }
+    this.canCalculate = true;
   }
 
   toggleDiscount() {
     this.showDiscount = !this.showDiscount;
+    this.canCalculate = true;
   }
   get expiryDateControl(): FormControl {
     return this.paymentFormGroup.get('expiryDate') as FormControl;
@@ -573,9 +592,11 @@ export class RentalEditExchangeComponent implements OnInit {
           grossAmount: data.grossPrice,
           tax: data.taxRate * 100
         });
+        this.canCalculate = false;
       },
       error: (error) => {
         alert('Error calculating price: ' + error.message);
+        this.canCalculate = false;
       }
     });
   }

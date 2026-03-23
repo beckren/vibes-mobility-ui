@@ -1,0 +1,518 @@
+openapi: 3.0.1
+info:
+  title: Vibes Mobility API
+  version: 1.0.0
+  description: API for Vibes Mobility platform
+servers:
+  - url: http://localhost:5000
+paths:
+  /authentication/login:
+    post:
+      tags: [authentication]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRecord'
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Unauthorized
+  /authentication/refresh:
+    post:
+      tags: [authentication]
+      summary: Refresh JWT token
+      responses:
+        '200':
+          description: Token refreshed
+        '401':
+          description: Unauthorized
+  /fee:
+    get:
+      tags: [fee]
+      summary: Get all fees
+      responses:
+        '200':
+          description: List of fees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeeTypeDto'
+        '400':
+          description: Bad request
+    post:
+      tags: [fee]
+      summary: Update fees
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FeeRecord'
+      responses:
+        '200':
+          description: Fees updated
+        '400':
+          description: Bad request
+  /user:
+    get:
+      tags: [user]
+      summary: Get all users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserRecord'
+    post:
+      tags: [user]
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRecord'
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Bad request
+  /user/{id}:
+    get:
+      tags: [user]
+      summary: Get user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+        '404':
+          description: Not found
+  /checkout:
+    post:
+      tags: [checkout]
+      summary: Create a new checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRecord'
+      responses:
+        '201':
+          description: Checkout created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+  /checkout/{id}:
+    get:
+      tags: [checkout]
+      summary: Get checkout by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Checkout found
+        '404':
+          description: Not found
+  /vehicle:
+    get:
+      tags: [vehicle]
+      summary: Get all vehicles
+      responses:
+        '200':
+          description: List of vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleDto'
+        '500':
+          description: Server error
+  /vehicle/{mva}:
+    get:
+      tags: [vehicle]
+      summary: Get vehicle by MVA
+      parameters:
+        - in: path
+          name: mva
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleDto'
+        '404':
+          description: Not found
+  /price/net:
+    get:
+      tags: [price]
+      summary: Get net target sale price
+      parameters:
+        - in: query
+          name: checkoutDate
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: expectedCheckinDate
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: carGroup
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Net target sale price
+          content:
+            application/json:
+              schema:
+                type: number
+                format: decimal
+        '400':
+          description: Bad request
+components:
+  schemas:
+    LoginRecord:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+    FeeRecord:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        interval:
+          type: string
+        changeFrom:
+          type: string
+        changeTo:
+          type: string
+      required: [name, category, interval, changeFrom, changeTo]
+    FeeTypeDto:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        interval:
+          type: string
+        oldAmount:
+          type: number
+        currentAmount:
+          type: number
+        modificationUser:
+          type: string
+    UserRecord:
+      type: object
+      properties:
+        firstname:
+          type: string
+        lastname:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+      required: [firstname, lastname, password, email, roles]
+    VehicleDto:
+      type: object
+      properties:
+        id:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        licensePlate:
+          type: string
+        carGroup:
+          type: string
+      required: [id, make, model, year, licensePlate, carGroup]
+    CheckoutRecord:
+      type: object
+      properties:
+        checkoutPricingRecord:
+          $ref: '#/components/schemas/CheckoutPricingRecord'
+        customerRecord:
+          $ref: '#/components/schemas/CustomerRecord'
+        additionalDriverRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdditionalDriverRecord'
+        mva:
+          type: string
+          description: Motor Vehicle Allocation identifier
+        paymentRecord:
+          $ref: '#/components/schemas/PaymentRecord'
+      required: [checkoutPricingRecord, customerRecord, additionalDriverRecords, mva, paymentRecord]
+    CheckoutPricingRecord:
+      type: object
+      properties:
+        checkoutDate:
+          type: string
+          format: date-time
+          description: Checkout date and time
+        expectedCheckinDate:
+          type: string
+          format: date-time
+          description: Expected check-in date and time
+        carGroupName:
+          type: string
+          description: Name of the car group (e.g., CDMR, EDMR)
+        targetSalePrice:
+          type: string
+          nullable: true
+          description: Target net sale price
+        grossListSalePrice:
+          type: string
+          nullable: true
+          description: Gross list sale price
+        additionalFees:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/AdditionalFeeRecord'
+        discount:
+          $ref: '#/components/schemas/DiscountRecord'
+      required: [checkoutDate, expectedCheckinDate, carGroupName]
+    AdditionalFeeRecord:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the additional fee
+        amount:
+          type: string
+          description: Fee amount
+        amountMax:
+          type: string
+          description: Maximum fee amount
+      required: [name, amount, amountMax]
+    DiscountRecord:
+      type: object
+      nullable: true
+      properties:
+        percentage:
+          type: string
+          description: Discount percentage
+        reason:
+          type: string
+          description: Reason for discount
+        user:
+          type: string
+          description: User who applied the discount
+      required: [percentage, reason, user]
+    CustomerRecord:
+      type: object
+      properties:
+        driverRecord:
+          $ref: '#/components/schemas/DriverRecord'
+        personRecord:
+          $ref: '#/components/schemas/PersonRecord'
+        billingAddressRecord:
+          $ref: '#/components/schemas/AddressRecord'
+        customerNote:
+          type: string
+          description: Additional notes about the customer
+        driverSameAsRenter:
+          type: string
+          description: Indicates if the driver is the same as the renter
+      required: [driverRecord, personRecord, billingAddressRecord, customerNote, driverSameAsRenter]
+    AdditionalDriverRecord:
+      type: object
+      properties:
+        driverRecord:
+          $ref: '#/components/schemas/DriverRecord'
+        personRecord:
+          $ref: '#/components/schemas/PersonRecord'
+        customerNote:
+          type: string
+          description: Notes about the additional driver
+      required: [driverRecord, personRecord, customerNote]
+    DriverRecord:
+      type: object
+      properties:
+        licenseNumber:
+          type: string
+          description: Driver's license number
+        licenseCountry:
+          type: string
+          description: Country that issued the license
+        licenseIssued:
+          type: string
+          format: date
+          description: Date the license was issued
+        licenseExpiry:
+          type: string
+          format: date
+          description: License expiration date
+        licenseImageBase64:
+          type: string
+          description: Base64 encoded image of the driver's license
+      required: [licenseNumber, licenseCountry, licenseIssued, licenseExpiry, licenseImageBase64]
+    PersonRecord:
+      type: object
+      properties:
+        academicTitle:
+          type: string
+          description: Academic title (e.g., Dr., Prof.)
+        firstName:
+          type: string
+          description: First name
+        lastName:
+          type: string
+          description: Last name
+        dob:
+          type: string
+          format: date
+          description: Date of birth
+        phone:
+          type: string
+          description: Phone number
+        email:
+          type: string
+          format: email
+          description: Email address
+        addressRecord:
+          $ref: '#/components/schemas/AddressRecord'
+        idType:
+          type: string
+          description: Type of identification (e.g., Passport, ID Card)
+        idNumber:
+          type: string
+          description: Identification number
+        idExpiryDate:
+          type: string
+          format: date
+          description: ID expiration date
+        idImageBase64:
+          type: string
+          description: Base64 encoded image of the ID
+      required: [firstName, lastName, dob, phone, email, addressRecord, idType, idNumber, idExpiryDate, idImageBase64]
+    AddressRecord:
+      type: object
+      properties:
+        companyName:
+          type: string
+          description: Company name (if applicable)
+        street:
+          type: string
+          description: Street name
+        zip:
+          type: string
+          description: ZIP/Postal code
+        country:
+          type: string
+          description: Country
+        houseNr:
+          type: string
+          description: House number
+        city:
+          type: string
+          description: City
+      required: [street, zip, country, houseNr, city]
+    PaymentRecord:
+      type: object
+      properties:
+        cardType:
+          type: string
+          description: Type of credit card (e.g., Visa, MasterCard)
+        cardNumber:
+          type: string
+          description: Credit card number
+        nameOnCard:
+          type: string
+          description: Name as it appears on the card
+        expiryDate:
+          type: string
+          description: Card expiration date (MM/YY)
+        cvv:
+          type: string
+          description: Card verification value
+        amountOnHold:
+          type: string
+          description: Amount put on hold
+        checkoutGrossAmount:
+          type: string
+          description: Total gross amount at checkout
+        paymentDate:
+          type: string
+          format: date-time
+          description: Date of payment
+        paymentStatus:
+          type: string
+          description: Status of payment (e.g., Pending, Completed)
+        authorizationCode:
+          type: string
+          description: Payment authorization code
+      required: [cardType, cardNumber, nameOnCard, expiryDate, cvv, amountOnHold, checkoutGrossAmount, paymentDate, paymentStatus, authorizationCode]
+    CheckoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Response message
+        checkout:
+          type: object
+          properties:
+            firstname:
+              type: string
+            lastname:
+              type: string
+            checkoutDateTime:
+              type: string
+              format: date-time
+            expectedCheckinDateTime:
+              type: string
+              format: date-time
+            rentalStatus:
+              type: string
+

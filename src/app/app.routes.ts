@@ -166,12 +166,12 @@ export const routes: Routes = [
         title: 'Available Vehicles',
       },
       {
-        path: 'update-prices',
+        path: 'update-fees',
         loadComponent: () =>
-          import('./components/update-prices/update-prices.component').then(
-            (m) => m.UpdatePricesComponent
+          import('./components/update-fees/update-fees.component').then(
+            (m) => m.UpdateFeesComponent
           ),
-        title: 'Update Prices',
+        title: 'Update Fees',
       },
       {
         path: 'new-upcoming-rental',

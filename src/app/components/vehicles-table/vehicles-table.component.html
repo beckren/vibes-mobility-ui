@@ -1,78 +1,112 @@
 <h2 class="title">Vehicles</h2>
-<input
-  matInput
-  placeholder="Search vehicles"
-  (input)="applyFilter($event)"
-  class="search-input"
-/>
-<div class="table-container">
-  <table
-    mat-table
-    [dataSource]="dataSource"
-    matSort
-    class="mat-elevation-z8 desktop-table"
-  >
-    <ng-container matColumnDef="carId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>MVA</th>
-      <td mat-cell *matCellDef="let element">{{ element.carId }}</td>
-    </ng-container>
 
-    <ng-container matColumnDef="plate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Plate</th>
-      <td mat-cell *matCellDef="let element">{{ element.plate }}</td>
-    </ng-container>
+<!-- Loading Spinner -->
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading vehicles...</p>
+</div>
 
-    <ng-container matColumnDef="model">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Model</th>
-      <td mat-cell *matCellDef="let element">{{ element.model }}</td>
-    </ng-container>
+<!-- Error Message -->
+<div *ngIf="errorMessage && !isLoading" class="error-container">
+  <mat-icon color="warn">error</mat-icon>
+  <p>{{ errorMessage }}</p>
+  <button mat-raised-button color="primary" (click)="refreshVehicles()">
+    Retry
+  </button>
+</div>
 
-    <ng-container matColumnDef="color">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Color</th>
-      <td mat-cell *matCellDef="let element">{{ element.color }}</td>
-    </ng-container>
+<!-- Content (only show when not loading and no error) -->
+<ng-container *ngIf="!isLoading && !errorMessage">
+  <input
+    matInput
+    placeholder="Search vehicles"
+    (input)="applyFilter($event)"
+    class="search-input"
+  />
+  <div class="table-container">
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      matSort
+      class="mat-elevation-z8 desktop-table"
+    >
+      <ng-container matColumnDef="carId">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>MVA</th>
+        <td mat-cell *matCellDef="let element">{{ element.carId }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="year">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Year</th>
-      <td mat-cell *matCellDef="let element">{{ element.year }}</td>
-    </ng-container>
+      <ng-container matColumnDef="plate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Plate</th>
+        <td mat-cell *matCellDef="let element">{{ element.plate }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="accent" (click)="editVehicle(element)">
+      <ng-container matColumnDef="brand">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Brand</th>
+        <td mat-cell *matCellDef="let element">{{ element.brand }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="model">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Model</th>
+        <td mat-cell *matCellDef="let element">{{ element.model }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="color">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Color</th>
+        <td mat-cell *matCellDef="let element">{{ element.color }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="year">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Year</th>
+        <td mat-cell *matCellDef="let element">{{ element.year }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button color="accent" (click)="editVehicle(element)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="primary" (click)="gotoMaintenance()">
+            <mat-icon>build</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="dataSource.data.length === 0" class="empty-state">
+      <mat-icon>directions_car</mat-icon>
+      <p>No vehicles found</p>
+    </div>
+
+    <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
+      <div class="card">
+        <div class="card-header">
+          <h3>{{ element.model }} ({{ element.year }})</h3>
+          <p class="car-id">{{ element.carId }}</p>
+        </div>
+        <p>Plate: {{ element.plate }}</p>
+        <p>Brand: {{ element.brand }}</p>
+        <p>Color: {{ element.color }}</p>
+        <button
+          mat-icon-button
+          (click)="editVehicle(element)"
+          class="edit-btn"
+        >
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="primary" (click)="gotoMaintenance()">
-          <mat-icon>build</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-
-  <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
-    <div class="card">
-      <div class="card-header">
-        <h3>{{ element.model }} ({{ element.year }})</h3>
-        <p class="car-id">{{ element.carId }}</p>
       </div>
-      <p>Plate: {{ element.plate }}</p>
-      <p>Color: {{ element.color }}</p>
-      <button
-        mat-icon-button
-       
-        (click)="editVehicle(element)"
-        class="edit-btn"
-      >
-        <mat-icon>edit</mat-icon>
-      </button>
     </div>
   </div>
-</div>
+</ng-container>
+
 <div class="buttons-container">
+  <button mat-raised-button color="primary" (click)="refreshVehicles()" [disabled]="isLoading">
+    <mat-icon>refresh</mat-icon> Refresh
+  </button>
   <button mat-raised-button class="button1" (click)="gotoNewCar()">
     New Car
   </button>

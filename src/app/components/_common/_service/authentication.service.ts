@@ -102,15 +102,21 @@ export class AuthenticationService {
         this.accessToken = accessToken;
     }
 
-    getAccessToken() {
-        const tokenString = localStorage.getItem("userToken")
+    getAccessToken(): string | null {
+        const tokenString = localStorage.getItem("userToken");
         if (tokenString) {
-            // Parse the token if it's in JSON format
-            const tokenObject = JSON.parse(tokenString);
-            return tokenObject.token; // Access the token property
-        } else {
-            return this.accessToken;
+            try {
+                const tokenObject = JSON.parse(tokenString);
+                // Token is inside result object: { result: { token: "..." } }
+                const result = tokenObject.result || tokenObject;
+                const token = result.token || result.accessToken || result.access_token || result.jwt;
+                return token || null;
+            } catch (e) {
+                console.error('Failed to parse token from localStorage', e);
+                return null;
+            }
         }
+        return this.accessToken;
     }
 
     delete(email: string) {

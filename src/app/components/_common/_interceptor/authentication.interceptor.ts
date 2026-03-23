@@ -18,6 +18,11 @@ export class AuthenticationInterceptor implements HttpInterceptor {
   constructor(private authenticationService: AuthenticationService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Skip adding auth header for login and refresh endpoints
+    if (req.url.includes('/authentication/login') || req.url.includes('/authentication/refresh')) {
+      return next.handle(req);
+    }
+
     const token = this.authenticationService.getAccessToken();
     let authReq = req;
 

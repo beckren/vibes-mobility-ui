@@ -261,6 +261,7 @@
                 color="primary"
                 class="buttons"
                 type="button"
+                [disabled]="!canCalculate"
                 (click)="calculatePrice()"
               >
                 Calculate Price
@@ -536,17 +537,22 @@
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
               <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>Street</mat-label>
-                <input matInput formControlName="street" />
+                <mat-label>Address</mat-label>
+                <input matInput formControlName="addressline1" />
               </mat-form-field>
               <mat-form-field appearance="outline" class="gray-bg">
                 <mat-label>Address 2</mat-label>
-                <input matInput formControlName="address2" />
+                <input matInput formControlName="addressline2" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>ZIP</mat-label>
-                <input matInput formControlName="zip" />
+                <mat-label>Postal Code</mat-label>
+                <input matInput formControlName="postalCode" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="gray-bg">
+                <mat-label>City</mat-label>
+                <input matInput formControlName="city" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="gray-bg">
@@ -555,16 +561,6 @@
                   <mat-option>Country 1</mat-option>
                   <mat-option>Country 2</mat-option>
                 </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>House nr.</mat-label>
-                <input matInput formControlName="houseNr" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>City</mat-label>
-                <input matInput formControlName="city" />
               </mat-form-field>
             </div>
 
@@ -598,8 +594,8 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>ZIP</mat-label>
-                <input matInput formControlName="zip" />
+                <mat-label>Postal Code</mat-label>
+                <input matInput formControlName="postalCode" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="gray-bg">
@@ -788,28 +784,24 @@
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
                 <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Street</mat-label
-                  ><input matInput formControlName="street"
+                  ><mat-label>Address 1</mat-label
+                  ><input matInput formControlName="addressline1"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="gray-bg"
                   ><mat-label>Address 2</mat-label
-                  ><input matInput formControlName="address2"
+                  ><input matInput formControlName="addressline2"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>ZIP</mat-label
-                  ><input matInput formControlName="zip"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Country</mat-label
-                  ><input matInput formControlName="country"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>House nr.</mat-label
-                  ><input matInput formControlName="houseNr"
+                  ><mat-label>Postal Code</mat-label
+                  ><input matInput formControlName="postalCode"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="gray-bg"
                   ><mat-label>City</mat-label
                   ><input matInput formControlName="city"
+                /></mat-form-field>
+                <mat-form-field appearance="outline" class="gray-bg"
+                  ><mat-label>Country</mat-label
+                  ><input matInput formControlName="country"
                 /></mat-form-field>
               </div>
 

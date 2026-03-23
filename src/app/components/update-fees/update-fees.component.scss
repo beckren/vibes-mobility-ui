@@ -144,3 +144,31 @@ h4 {
     padding: 15px;
   }
 }
+
+.fees-list-container {
+  margin-top: 20px;
+}
+
+.fees-list-title {
+  margin-bottom: 12px;
+}
+
+.fees-table {
+  width: 100%;
+  background: transparent;
+
+  th.mat-header-cell {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+  }
+
+  td.mat-cell {
+    color: white;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  tr.mat-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}

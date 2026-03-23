@@ -76,6 +76,65 @@ button {
   box-shadow: none;
 }
 
+// Loading, Error, and Empty State styles
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: white;
+
+  p {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: white;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 10px;
+  margin-bottom: 20px;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #f44336;
+  }
+
+  p {
+    margin: 16px 0;
+    font-size: 16px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.6);
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+  }
+
+  p {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+}
+
 .mobile-cards {
   display: none;
 }

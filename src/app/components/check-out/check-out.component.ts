@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, FormControl, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, FormControl, FormsModule, Validators } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -25,13 +25,28 @@ import * as _moment from 'moment';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { combineLatest } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { combineLatest, Subject, merge } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 
 import { UploadOptionsComponent } from '../upload-options.component';
 import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/_service/price.service';
 import { FeeService, Fee } from '../_common/_service/fee.service';
 import { VehicleService, Vehicle } from '../_common/_service/vehicle.service';
+import {
+  CheckoutService,
+  CheckoutPayload,
+  CheckoutPricingRecord,
+  CustomerRecord,
+  AdditionalDriverRecord,
+  PaymentRecord,
+  DriverRecord,
+  PersonRecord,
+  AddressRecord,
+  DiscountRecord,
+  AdditionalFeeRecord
+} from '../_common/_service/checkout.service';
+import { InvoiceService, VehicleInfo } from '../../services/invoice.service';
+import { COUNTRIES } from '../../shared/constants/countries';
 
 const moment = _rollupMoment || _moment;
 const FULL_DATE_FORMATS = {
@@ -86,9 +101,11 @@ const FULL_DATE_FORMATS = {
 
 
 })
-export class CheckOutComponent implements OnInit {
+export class CheckOutComponent implements OnInit, OnDestroy {
   driverStepVisible = false;
   isMobile = false;
+  canCalculate = false;
+  private destroy$ = new Subject<void>();
   pricingFormGroup!: FormGroup;
   driverFormGroup!: FormGroup;
   customerFormGroup!: FormGroup;
@@ -111,6 +128,9 @@ export class CheckOutComponent implements OnInit {
   fees: Fee[] = [];
   vehicles: Vehicle[] = [];
 
+  // List of countries for dropdowns (imported from shared constants)
+  countries = COUNTRIES;
+
   // Holds all uploaded files by key (e.g. 'customer-id', 'driver-license', 'additional-driver-1', etc.)
   fileMap: { [key: string]: File } = {};
 
@@ -127,7 +147,9 @@ export class CheckOutComponent implements OnInit {
     private priceService: PriceService,
     private snackBar: MatSnackBar,
     private feeService: FeeService,
-    private vehicleService: VehicleService // <-- inject VehicleService
+    private vehicleService: VehicleService,
+    private checkoutService: CheckoutService,
+    private invoiceService: InvoiceService
   ) { }
 
   ngOnInit() {
@@ -157,14 +179,19 @@ export class CheckOutComponent implements OnInit {
       lastName: [''],
       dob: [''],
       phone: [''],
-      email: [''],
-      street: [''],
-      address2: [''],
-      zip: [''],
+      email: ['', [Validators.email]],
+      addressline1: [''],  // Combined street + house number
+      addressline2: [''],
+      postalCode: [''],
       country: [''],
-      houseNr: [''],
       city: [''],
       sameBillingAddress: ['yes'],
+      // Billing Address fields (separate from home address)
+      billingCompanyName: [''],
+      billingAddressline1: [''],
+      billingPostalCode: [''],
+      billingCountry: [''],
+      billingCity: [''],
       companyName: [''],
       idType: [''],
       idNumber: [''],
@@ -182,11 +209,10 @@ export class CheckOutComponent implements OnInit {
         dob: [''],
         phone: [''],
         email: [''],
-        street: [''],
-        zip: [''],
-        country: [''],
-        houseNr: [''],
+        addressline1: [''],
+        postalCode: [''],
         city: [''],
+        country: [''],
         licenseNumber: [''],
         licenseCountry: [''],
         licenseExpiry: [''],
@@ -220,7 +246,7 @@ export class CheckOutComponent implements OnInit {
       cardNumber: [''],
       nameOnCard: [''],
       expiryDate: new FormControl(null), // Full date: 2025-08-01
-      cvv: [''],
+      cvv: ['', [Validators.maxLength(4), Validators.pattern(/^\d{0,4}$/)]],
       amountOnHold: [300],
       checkoutGrossAmount: [''],
       paymentDate: [''],
@@ -235,12 +261,11 @@ export class CheckOutComponent implements OnInit {
       dob: [''],
       phone: [''],
       email: [''],
-      street: [''],
-      address2: [''],
-      zip: [''],
-      country: [''],
-      houseNr: [''],
-      city: ['']
+      addressline1: [''],
+      addressline2: [''],
+      postalCode: [''],
+      city: [''],
+      country: ['']
     });
 
     this.detectDevice();
@@ -309,7 +334,7 @@ export class CheckOutComponent implements OnInit {
         this.carInformationFormGroup.patchValue({
           licensePlate: selectedVehicle.licensePlate,
           fuel: selectedVehicle.fuel,
-          carModel: selectedVehicle.carModel,
+          carModel: selectedVehicle.model,
           mileage: selectedVehicle.mileage,
           color: selectedVehicle.color,
           status: selectedVehicle.status,
@@ -327,6 +352,23 @@ export class CheckOutComponent implements OnInit {
         });
       }
     });
+
+    merge(
+      this.CheckOutDateControl.valueChanges,
+      this.CheckOutTimeControl.valueChanges,
+      this.CheckInDateControl.valueChanges,
+      this.CheckInTimeControl.valueChanges,
+      this.pricingFormGroup.get('carGroup')!.valueChanges,
+      this.pricingFormGroup.get('discountPercentage')!.valueChanges,
+      this.pricingFormGroup.get('discountReason')!.valueChanges,
+      this.pricingFormGroup.get('discountAppliedBy')!.valueChanges,
+      this.additionalFees.valueChanges
+    ).pipe(takeUntil(this.destroy$)).subscribe(() => this.canCalculate = true);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   toLocalISOStringNoMs(date: Date): string {
@@ -384,10 +426,10 @@ export class CheckOutComponent implements OnInit {
           dob: renterDetails.dob,
           phone: renterDetails.phone,
           email: renterDetails.email,
-          street: renterDetails.street,
-          zip: renterDetails.zip,
+          addressline1: renterDetails.addressline1,
+          addressline2: renterDetails.addressline2,
+          postalCode: renterDetails.postalCode,
           country: renterDetails.country,
-          houseNr: renterDetails.houseNr,
           city: renterDetails.city,
           licenseNumber: renterDetails.licenseNumber,
           licenseCountry: renterDetails.licenseCountry,
@@ -412,13 +454,13 @@ export class CheckOutComponent implements OnInit {
       dob: [''],
       phone: [''],
       email: [''],
-      street: [''],
-      zip: [''],
+      addressline1: [''],
+      postalCode: [''],
       country: [''],
-      houseNr: [''],
       city: [''],
       idType: [''],
       idNumber: [''],
+      idExpiry: [''],
       licenseNumber: [''],
       licenseCountry: [''],
       licenseExpiry: [''],
@@ -519,10 +561,12 @@ export class CheckOutComponent implements OnInit {
     if (this.showAdditionalFees && this.additionalFees.length === 0) {
       this.addAdditionalFee();
     }
+    this.canCalculate = true;
   }
 
   toggleDiscount() {
     this.showDiscount = !this.showDiscount;
+    this.canCalculate = true;
   }
   get expiryDateControl(): FormControl {
     return this.paymentFormGroup.get('expiryDate') as FormControl;
@@ -614,6 +658,7 @@ export class CheckOutComponent implements OnInit {
           grossAmount: data.grossPrice,
           tax: data.taxRate * 100
         });
+        this.canCalculate = false;
       },
       error: (error) => {
         alert('Error calculating price: ' + error.message);
@@ -622,16 +667,286 @@ export class CheckOutComponent implements OnInit {
           verticalPosition: 'top',
           horizontalPosition: 'center'
         });
+        this.canCalculate = false;
       }
     });
   }
+
+  /**
+   * Builds the checkout payload from all form groups and submits it to the backend.
+   */
   save() {
-    // your save logic (e.g. form submission, API call, etc.)
-    this.snackBar.open('Saved successfully!', 'Close', {
-      duration: 3000,       // auto close after 3s
-      verticalPosition: 'top',
-      horizontalPosition: 'center'
+    const payload = this.buildCheckoutPayload();
+    
+    if (!payload) {
+      this.snackBar.open('Please fill in all required fields.', 'Close', {
+        duration: 3000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    this.checkoutService.submitCheckout(payload).subscribe({
+      next: (response) => {
+        this.snackBar.open(response.message || 'Checkout saved successfully!', 'Close', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+          panelClass: ['success-snackbar']
+        });
+        // Generate and print invoice
+        this.printInvoice(payload);
+      },
+      error: (err) => {
+        console.error('Checkout submission failed', err);
+        this.snackBar.open('Failed to save checkout: ' + (err.error?.message || err.message), 'Close', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+          panelClass: ['error-snackbar']
+        });
+      }
     });
+  }
+
+  /**
+   * Builds the complete CheckoutPayload from all form groups.
+   */
+  buildCheckoutPayload(): CheckoutPayload | null {
+    // Build checkout and checkin datetime
+    const checkOutDate = this.CheckOutDateControl.value;
+    const checkOutTime = this.CheckOutTimeControl.value;
+    const checkInDate = this.CheckInDateControl.value;
+    const checkInTime = this.CheckInTimeControl.value;
+
+    if (!checkOutDate || !checkOutTime || !checkInDate || !checkInTime) {
+      return null;
+    }
+
+    const checkOutDateTime = new Date(checkOutDate);
+    const [coHour, coMin] = checkOutTime.split(':');
+    checkOutDateTime.setHours(+coHour, +coMin);
+
+    const checkInDateTime = new Date(checkInDate);
+    const [ciHour, ciMin] = checkInTime.split(':');
+    checkInDateTime.setHours(+ciHour, +ciMin);
+
+    // Build pricing record
+    const pricingRecord: CheckoutPricingRecord = {
+      checkoutDate: checkOutDateTime.toISOString(),
+      expectedCheckinDate: checkInDateTime.toISOString(),
+      carGroupName: this.pricingFormGroup.get('carGroup')?.value || '',
+      targetSalePrice: this.pricingFormGroup.get('netAmount')?.value?.toString() || null,
+      grossListSalePrice: this.pricingFormGroup.get('grossAmount')?.value?.toString() || null,
+      additionalFees: this.buildAdditionalFeesForCheckout(),
+      discount: this.buildDiscountRecord()
+    };
+
+    // Build customer record
+    const customerRecord = this.buildCustomerRecord();
+
+    // Build additional driver records
+    const additionalDriverRecords = this.buildAdditionalDriverRecords();
+
+    // Build payment record
+    const paymentRecord = this.buildPaymentRecord();
+
+    // Get MVA
+    const mva = this.carInformationFormGroup.get('mva')?.value || '';
+
+    return {
+      checkoutPricingRecord: pricingRecord,
+      customerRecord: customerRecord,
+      additionalDriverRecords: additionalDriverRecords,
+      mva: mva,
+      paymentRecord: paymentRecord
+    };
+  }
+
+  /**
+   * Builds the additional fees array for the checkout payload.
+   */
+  buildAdditionalFeesForCheckout(): AdditionalFeeRecord[] | null {
+    const fees = this.additionalFees.controls.map(fee => ({
+      name: fee.get('feeType')?.value || '',
+      amount: fee.get('price')?.value?.toString() || '',
+      amountMax: fee.get('maxAmount')?.value?.toString() || ''
+    }));
+    return fees.length > 0 ? fees : null;
+  }
+
+  /**
+   * Builds the discount record for the checkout payload.
+   */
+  buildDiscountRecord(): DiscountRecord | null {
+    if (!this.showDiscount) return null;
+    const percentage = this.pricingFormGroup.get('discountPercentage')?.value;
+    const reason = this.pricingFormGroup.get('discountReason')?.value;
+    const user = this.pricingFormGroup.get('discountAppliedBy')?.value;
+    if (!percentage && !reason && !user) return null;
+    return {
+      percentage: percentage?.toString() || '',
+      reason: reason || '',
+      user: user || ''
+    };
+  }
+
+  /**
+   * Builds the customer record from the customer form group.
+   */
+  buildCustomerRecord(): CustomerRecord {
+    const c = this.customerFormGroup.value;
+    
+    const addressRecord: AddressRecord = {
+      companyName: c.companyName || '',
+      addressline1: c.addressline1 || '',
+      postalCode: c.postalCode || '',
+      city: c.city || '',
+      country: c.country || ''
+    };
+
+    // Build person record
+    const personRecord: PersonRecord = {
+      academicTitle: c.academicTitle || '',
+      firstName: c.firstName || '',
+      lastName: c.lastName || '',
+      dob: c.dob ? this.formatDate(c.dob) : '',
+      phone: c.phone || '',
+      email: c.email || '',
+      addressRecord: addressRecord,
+      idType: c.idType || '',
+      idNumber: c.idNumber || '',
+      idExpiryDate: c.idExpiry ? this.formatDate(c.idExpiry) : '',
+      idImageBase64: this.fileMap['customer-id'] ? '' : '' // TODO: convert file to base64
+    };
+
+    // Build driver record
+    const driverRecord: DriverRecord = {
+      licenseNumber: c.licenseNumber || '',
+      licenseCountry: c.licenseCountry || '',
+      licenseIssued: c.licenseIssued ? this.formatDate(c.licenseIssued) : '',
+      licenseExpiry: c.licenseExpiry ? this.formatDate(c.licenseExpiry) : '',
+      licenseImageBase64: this.fileMap['driver-license'] ? '' : '' // TODO: convert file to base64
+    };
+
+    // Billing address (same as home address if sameBillingAddress is 'yes')
+    const billingAddressRecord: AddressRecord = c.sameBillingAddress === 'yes' 
+      ? { ...addressRecord }
+      : {
+          companyName: c.billingCompanyName || '',
+          addressline1: c.billingAddressline1 || '',
+          addressline2: '',
+          postalCode: c.billingPostalCode || '',
+          country: c.billingCountry || '',
+          city: c.billingCity || ''
+        };
+
+    return {
+      driverRecord: driverRecord,
+      personRecord: personRecord,
+      billingAddressRecord: billingAddressRecord,
+      customerNote: c.customerNote || '',
+      driverSameAsRenter: c.driverSameAsRenter || 'yes'
+    };
+  }
+
+  /**
+   * Builds additional driver records from the additional driver forms.
+   */
+  buildAdditionalDriverRecords(): AdditionalDriverRecord[] {
+    return this.additionalDriverForms.map((form, index) => {
+      const d = form.value;
+      
+      const addressRecord: AddressRecord = {
+        addressline1: d.addressline1 || '',
+        postalCode: d.postalCode || '',
+        country: d.country || '',
+        city: d.city || ''
+      };
+
+      const personRecord: PersonRecord = {
+        academicTitle: d.academicTitle || '',
+        firstName: d.firstName || '',
+        lastName: d.lastName || '',
+        dob: d.dob ? this.formatDate(d.dob) : '',
+        phone: d.phone || '',
+        email: d.email || '',
+        addressRecord: addressRecord,
+        idType: d.idType || '',
+        idNumber: d.idNumber || '',
+        idExpiryDate: d.idExpiry ? this.formatDate(d.idExpiry) : '',
+        idImageBase64: this.fileMap[`additional-driver-${index + 1}-id`] ? '' : ''
+      };
+
+      const driverRecord: DriverRecord = {
+        licenseNumber: d.licenseNumber || '',
+        licenseCountry: d.licenseCountry || '',
+        licenseIssued: '', // Not in current form
+        licenseExpiry: d.licenseExpiry ? this.formatDate(d.licenseExpiry) : '',
+        licenseImageBase64: this.fileMap[`additional-driver-${index + 1}-license`] ? '' : ''
+      };
+
+      return {
+        driverRecord: driverRecord,
+        personRecord: personRecord,
+        customerNote: ''
+      };
+    });
+  }
+
+  /**
+   * Builds the payment record from the payment form group.
+   */
+  buildPaymentRecord(): PaymentRecord {
+    const p = this.paymentFormGroup.value;
+    
+    // Format expiry date as MM/YY
+    let expiryDateFormatted = '';
+    if (p.expiryDate) {
+      const expDate = new Date(p.expiryDate);
+      const month = (expDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = expDate.getFullYear().toString().slice(-2);
+      expiryDateFormatted = `${month}/${year}`;
+    }
+
+    return {
+      cardType: p.cardType || '',
+      cardNumber: p.cardNumber || '',
+      nameOnCard: p.nameOnCard || '',
+      expiryDate: expiryDateFormatted,
+      cvv: p.cvv || '',
+      amountOnHold: p.amountOnHold?.toString() || '',
+      checkoutGrossAmount: p.checkoutGrossAmount?.toString() || this.pricingFormGroup.get('grossAmount')?.value?.toString() || '',
+      paymentDate: p.paymentDate ? new Date(p.paymentDate).toISOString() : new Date().toISOString(),
+      paymentStatus: p.paymentStatus || 'Pending',
+      authorizationCode: p.authorizationCode || ''
+    };
+  }
+
+  /**
+   * Formats a date to ISO date string (YYYY-MM-DD).
+   */
+  formatDate(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
+  }
+
+  /**
+   * Generates and prints an invoice using the InvoiceService.
+   */
+  printInvoice(payload: CheckoutPayload) {
+    const vehicleInfo: VehicleInfo = {
+      licensePlate: this.carInformationFormGroup.get('licensePlate')?.value,
+      carModel: this.carInformationFormGroup.get('carModel')?.value,
+      fuel: this.carInformationFormGroup.get('fuel')?.value,
+      mileage: this.carInformationFormGroup.get('mileage')?.value,
+      transmission: this.carInformationFormGroup.get('transmission')?.value
+    };
+    const taxRate = this.pricingFormGroup.get('tax')?.value || 19;
+    this.invoiceService.printInvoice(payload, vehicleInfo, taxRate);
   }
 
   onFeeTypeChange(selectedName: string, index: number) {
@@ -665,7 +980,6 @@ export class CheckOutComponent implements OnInit {
    */
   formatFeeName(name: string): string {
     if (!name) return '';
-    // Insert space before all caps except the first letter
     return name.replace(/([a-z])([A-Z])/g, '$1 $2');
   }
 

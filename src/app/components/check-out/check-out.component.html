@@ -89,6 +89,7 @@
                 color="primary"
                 class="buttons"
                 type="button"
+                [disabled]="!canCalculate"
                 (click)="calculatePrice()"
               >
                 Calculate Price
@@ -308,9 +309,12 @@
                 <input matInput formControlName="phone" />
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="readonly-field">
+              <mat-form-field appearance="outline" class="readonly-field wide-field">
                 <mat-label>Email</mat-label>
                 <input matInput type="email" formControlName="email" />
+                <mat-error *ngIf="customerFormGroup.get('email')?.hasError('email')">
+                  Bitte geben Sie eine gültige E-Mail-Adresse ein
+                </mat-error>
               </mat-form-field>
             </div>
 
@@ -334,30 +338,26 @@
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
               <mat-form-field appearance="outline" class="readonly-field">
-                <mat-label>Street</mat-label>
-                <input matInput formControlName="street" />
+                <mat-label>Street + House Nr.</mat-label>
+                <input matInput formControlName="addressline1" placeholder="z.B. Musterstraße 123" />
               </mat-form-field>
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Address 2</mat-label>
-                <input matInput formControlName="address2" />
+                <input matInput formControlName="addressline2" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="readonly-field">
-                <mat-label>ZIP</mat-label>
-                <input matInput formControlName="zip" />
+                <mat-label>Postal Code</mat-label>
+                <input matInput formControlName="postalCode" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Country</mat-label>
                 <mat-select formControlName="country">
-                  <mat-option>Country 1</mat-option>
-                  <mat-option>Country 2</mat-option>
+                  <mat-option *ngFor="let country of countries" [value]="country">
+                    {{ country }}
+                  </mat-option>
                 </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="readonly-field">
-                <mat-label>House nr.</mat-label>
-                <input matInput formControlName="houseNr" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="readonly-field">
@@ -388,29 +388,30 @@
             >
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Company Name</mat-label>
-                <input matInput formControlName="companyName" />
+                <input matInput formControlName="billingCompanyName" />
               </mat-form-field>
               <mat-form-field appearance="outline" class="readonly-field">
-                <mat-label>Street</mat-label>
-                <input matInput formControlName="street" />
+                <mat-label>Street + House Nr.</mat-label>
+                <input matInput formControlName="billingAddressline1" placeholder="z.B. Musterstraße 123" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="readonly-field">
-                <mat-label>ZIP</mat-label>
-                <input matInput formControlName="zip" />
+                <mat-label>Postal Code</mat-label>
+                <input matInput formControlName="billingPostalCode" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Country</mat-label>
-                <mat-select formControlName="country">
-                  <mat-option>Country 1</mat-option>
-                  <mat-option>Country 2</mat-option>
+                <mat-select formControlName="billingCountry">
+                  <mat-option *ngFor="let country of countries" [value]="country">
+                    {{ country }}
+                  </mat-option>
                 </mat-select>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>City</mat-label>
-                <input matInput formControlName="city" />
+                <input matInput formControlName="billingCity" />
               </mat-form-field>
             </div>
 
@@ -588,24 +589,20 @@
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
                 <mat-form-field appearance="outline" class="readonly-field"
-                  ><mat-label>Street</mat-label
-                  ><input matInput formControlName="street"
+                  ><mat-label>Street + House Nr.</mat-label
+                  ><input matInput formControlName="addressline1" placeholder="z.B. Musterstraße 123"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="readonly-field"
                   ><mat-label>Address 2</mat-label
-                  ><input matInput formControlName="address2"
+                  ><input matInput formControlName="addressline2"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="readonly-field"
-                  ><mat-label>ZIP</mat-label
-                  ><input matInput formControlName="zip"
+                  ><mat-label>Postal Code</mat-label
+                  ><input matInput formControlName="postalCode"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="readonly-field"
                   ><mat-label>Country</mat-label
                   ><input matInput formControlName="country"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="readonly-field"
-                  ><mat-label>House nr.</mat-label
-                  ><input matInput formControlName="houseNr"
                 /></mat-form-field>
                 <mat-form-field appearance="outline" class="readonly-field"
                   ><mat-label>City</mat-label
@@ -673,11 +670,7 @@
                   <mat-label>Age</mat-label>
                   <input
                     matInput
-                    [value]="
-                      calculateAge(
-                        customerFormGroup.get('driverDetails.dob')?.value
-                      )
-                    "
+                    [value]="calculateAge(form.get('dob')?.value)"
                     disabled
                   />
                 </mat-form-field>
@@ -697,6 +690,20 @@
                 <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Identification nr.</mat-label>
                   <input matInput formControlName="idNumber" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>ID Expiry Date</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="idExpiryPickerAdditional"
+                    formControlName="idExpiry"
+                  />
+                  <mat-datepicker-toggle
+                    matSuffix
+                    [for]="idExpiryPickerAdditional"
+                  ></mat-datepicker-toggle>
+                  <mat-datepicker #idExpiryPickerAdditional></mat-datepicker>
                 </mat-form-field>
 
                 <div class="upload-container">
@@ -785,7 +792,7 @@
                 <mat-label>MVA</mat-label>
                 <mat-select formControlName="mva">
                   <mat-option *ngFor="let vehicle of vehicles" [value]="vehicle.mva">
-                    {{ vehicle.mva }} - {{ vehicle.licensePlate }} - {{ vehicle.carModel }}
+                    {{ vehicle.mva }} - {{ vehicle.licensePlate }} - {{ vehicle.model }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -884,7 +891,10 @@
 
               <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>CVV</mat-label>
-                <input matInput formControlName="cvv" />
+                <input matInput formControlName="cvv" maxlength="4" pattern="\d*" inputmode="numeric" />
+                <mat-error *ngIf="paymentFormGroup.get('cvv')?.hasError('maxlength') || paymentFormGroup.get('cvv')?.hasError('pattern')">
+                  CVV must be up to 4 digits
+                </mat-error>
               </mat-form-field>
             </div>
             <h4>Payment Amount</h4>
