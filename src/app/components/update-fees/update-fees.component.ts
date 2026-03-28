@@ -30,7 +30,7 @@ import { FeeService } from '../../services/fee.service';
 export class UpdateFeesComponent implements OnInit {
   allFees: any[] = [];
   feesDataSource = new MatTableDataSource<any>([]);
-  displayedColumns = ['name', 'category', 'interval', 'currentAmount', 'maxAmount', 'actions'];
+  displayedColumns = ['name', 'category', 'interval', 'amount', 'maxAmount', 'actions'];
   filterName = '';
   filterCategory = '';
   filterInterval = '';
@@ -38,7 +38,7 @@ export class UpdateFeesComponent implements OnInit {
   // Inline editing state
   editingKey: string | null = null;
   savingKey: string | null = null;
-  editValues = { currentAmount: 0, capAmount: 0 };
+  editValues = { amount: 0, capAmount: 0 };
 
   feeKey(fee: any): string {
     return `${fee.name}|${fee.interval}`;
@@ -72,7 +72,7 @@ export class UpdateFeesComponent implements OnInit {
   startEdit(fee: any) {
     this.editingKey = this.feeKey(fee);
     this.editValues = {
-      currentAmount: fee.currentAmount,
+      amount: fee.amount,
       capAmount: fee.capAmount,
     };
   }
@@ -87,7 +87,7 @@ export class UpdateFeesComponent implements OnInit {
       name: fee.name,
       category: fee.category,
       interval: fee.interval,
-      currentAmount: this.editValues.currentAmount,
+      amount: this.editValues.amount,
       capAmount: this.editValues.capAmount,
     };
 

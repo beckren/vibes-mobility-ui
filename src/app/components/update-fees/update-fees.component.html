@@ -39,14 +39,14 @@
         <td mat-cell *matCellDef="let fee">{{ fee.interval }}</td>
       </ng-container>
 
-      <ng-container matColumnDef="currentAmount">
-        <th mat-header-cell *matHeaderCellDef>Current Amount</th>
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef>Amount</th>
         <td mat-cell *matCellDef="let fee">
           <ng-container *ngIf="editingKey !== feeKey(fee)">
-            {{ fee.currentAmount | currency }}
+            {{ fee.amount | currency }}
           </ng-container>
           <mat-form-field *ngIf="editingKey === feeKey(fee)" appearance="outline" class="inline-field">
-            <input matInput type="number" [(ngModel)]="editValues.currentAmount" />
+            <input matInput type="number" [(ngModel)]="editValues.amount" />
           </mat-form-field>
         </td>
       </ng-container>

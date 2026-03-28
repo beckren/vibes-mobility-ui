@@ -91,7 +91,7 @@ paths:
               name: CDMR
               category: Car Group
               interval: Daily
-              currentAmount: 150.00
+              amount: 150.00
               capAmount: 900.00
       responses:
         '200':
@@ -290,7 +290,7 @@ components:
           $ref: '#/components/schemas/FeeCategoryEnum'
         interval:
           $ref: '#/components/schemas/FeeIntervalEnum'
-        currentAmount:
+        amount:
           type: number
           format: decimal
           example: 150.00
@@ -298,7 +298,7 @@ components:
           type: number
           format: decimal
           example: 900.00
-      required: [name, category, interval, currentAmount, capAmount]
+      required: [name, category, interval, amount, capAmount]
     CheckoutFeeRecord:
       type: object
       description: Fee entry calculated for a specific checkout interval

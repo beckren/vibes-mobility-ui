@@ -8,7 +8,7 @@ export interface FeeRecord {
   name: string;
   category: 'Additional' | 'Car Group';
   interval: 'Daily' | 'Weekly' | 'Weekend' | 'One Time';
-  currentAmount: number;
+  amount: number;
   capAmount: number;
 }
 
