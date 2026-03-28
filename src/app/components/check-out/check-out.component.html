@@ -81,6 +81,9 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
+              <mat-form-field *ngIf="noVehiclesForGroup" appearance="outline" class="readonly-field no-vehicles-field">
+                <input matInput value="No cars available for this car group" disabled />
+              </mat-form-field>
             </div>
 
             <div class="button-group">

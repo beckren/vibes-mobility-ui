@@ -109,6 +109,18 @@ mat-form-field {
   margin-bottom: 15px;
 }
 
+.no-vehicles-field {
+  min-width: 300px;
+  grid-column: span 2;
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background-color: #000000;
+  }
+  ::ng-deep input {
+    color: #d32f2f !important;
+    -webkit-text-fill-color: #d32f2f !important;
+  }
+}
+
 // Wide field spanning 2 columns (e.g., for email)
 .wide-field {
   grid-column: span 2;

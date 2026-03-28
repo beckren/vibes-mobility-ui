@@ -124,6 +124,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
 
   showAdditionalFees = false;
   showDiscount = false;
+  noVehiclesForGroup = false;
 
   fees: Fee[] = [];
   vehicles: Vehicle[] = [];
@@ -675,8 +676,8 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   /**
    * Builds the checkout payload from all form groups and submits it to the backend.
    */
-  save() {
-    const payload = this.buildCheckoutPayload();
+  async save() {
+    const payload = await this.buildCheckoutPayload();
     
     if (!payload) {
       this.snackBar.open('Please fill in all required fields.', 'Close', {
@@ -714,7 +715,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   /**
    * Builds the complete CheckoutPayload from all form groups.
    */
-  buildCheckoutPayload(): CheckoutPayload | null {
+  async buildCheckoutPayload(): Promise<CheckoutPayload | null> {
     // Build checkout and checkin datetime
     const checkOutDate = this.CheckOutDateControl.value;
     const checkOutTime = this.CheckOutTimeControl.value;
@@ -745,10 +746,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     };
 
     // Build customer record
-    const customerRecord = this.buildCustomerRecord();
+    const customerRecord = await this.buildCustomerRecord();
 
     // Build additional driver records
-    const additionalDriverRecords = this.buildAdditionalDriverRecords();
+    const additionalDriverRecords = await this.buildAdditionalDriverRecords();
 
     // Build payment record
     const paymentRecord = this.buildPaymentRecord();
@@ -796,7 +797,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   /**
    * Builds the customer record from the customer form group.
    */
-  buildCustomerRecord(): CustomerRecord {
+  async buildCustomerRecord(): Promise<CustomerRecord> {
     const c = this.customerFormGroup.value;
     
     const addressRecord: AddressRecord = {
@@ -819,7 +820,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       idType: c.idType || '',
       idNumber: c.idNumber || '',
       idExpiryDate: c.idExpiry ? this.formatDate(c.idExpiry) : '',
-      idImageBase64: this.fileMap['customer-id'] ? '' : '' // TODO: convert file to base64
+      idImageBase64: this.fileMap['customer-id'] ? await this.fileToBase64(this.fileMap['customer-id']) : ''
     };
 
     // Build driver record
@@ -828,7 +829,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       licenseCountry: c.licenseCountry || '',
       licenseIssued: c.licenseIssued ? this.formatDate(c.licenseIssued) : '',
       licenseExpiry: c.licenseExpiry ? this.formatDate(c.licenseExpiry) : '',
-      licenseImageBase64: this.fileMap['driver-license'] ? '' : '' // TODO: convert file to base64
+      licenseImageBase64: this.fileMap['driver-license'] ? await this.fileToBase64(this.fileMap['driver-license']) : ''
     };
 
     // Billing address (same as home address if sameBillingAddress is 'yes')
@@ -855,8 +856,8 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   /**
    * Builds additional driver records from the additional driver forms.
    */
-  buildAdditionalDriverRecords(): AdditionalDriverRecord[] {
-    return this.additionalDriverForms.map((form, index) => {
+  async buildAdditionalDriverRecords(): Promise<AdditionalDriverRecord[]> {
+    return Promise.all(this.additionalDriverForms.map(async (form, index) => {
       const d = form.value;
       
       const addressRecord: AddressRecord = {
@@ -877,7 +878,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         idType: d.idType || '',
         idNumber: d.idNumber || '',
         idExpiryDate: d.idExpiry ? this.formatDate(d.idExpiry) : '',
-        idImageBase64: this.fileMap[`additional-driver-${index + 1}-id`] ? '' : ''
+        idImageBase64: this.fileMap[`additional-driver-${index + 1}-id`] ? await this.fileToBase64(this.fileMap[`additional-driver-${index + 1}-id`]) : ''
       };
 
       const driverRecord: DriverRecord = {
@@ -885,7 +886,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         licenseCountry: d.licenseCountry || '',
         licenseIssued: '', // Not in current form
         licenseExpiry: d.licenseExpiry ? this.formatDate(d.licenseExpiry) : '',
-        licenseImageBase64: this.fileMap[`additional-driver-${index + 1}-license`] ? '' : ''
+        licenseImageBase64: this.fileMap[`additional-driver-${index + 1}-license`] ? await this.fileToBase64(this.fileMap[`additional-driver-${index + 1}-license`]) : ''
       };
 
       return {
@@ -893,7 +894,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         personRecord: personRecord,
         customerNote: ''
       };
-    });
+    }));
   }
 
   /**
@@ -997,10 +998,25 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   }
 
 
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1] || '');
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+
   fetchVehiclesByGroup(carGroup: string) {
+        console.log(this.noVehiclesForGroup);
+
     this.vehicleService.getVehiclesByGroup(carGroup).subscribe({
       next: (vehicles) => {
         this.vehicles = vehicles;
+        this.noVehiclesForGroup = false;
         // Optionally reset mva if not in new list
         const mvaControl = this.carInformationFormGroup.get('mva');
         if (mvaControl && !vehicles.some(v => v.mva === mvaControl.value)) {
@@ -1008,14 +1024,17 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        console.error('Failed to fetch vehicles by group', err);
-        this.snackBar.open('Failed to fetch vehicles for ' + carGroup + '.', 'Close', {
-          duration: 3000,
-          verticalPosition: 'top',
-          horizontalPosition: 'center'
-        });
-        // Fallback: clear current vehicles to avoid stale data
         this.vehicles = [];
+        if (err.status === 404) {
+          this.noVehiclesForGroup = true;
+        } else {
+          this.noVehiclesForGroup = false;
+          this.snackBar.open('Failed to fetch vehicles for ' + carGroup + '.', 'Close', {
+            duration: 5000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+        }
       }
     });
   }
