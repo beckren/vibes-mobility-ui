@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API for Vibes Mobility platform
 servers:
-  - url: http://localhost:5000
+  - url: http://localhost:8080
 paths:
   /authentication/login:
     post:
@@ -36,31 +36,74 @@ paths:
       summary: Get all fees
       responses:
         '200':
-          description: List of fees
+          description: List of all fees
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/FeeTypeDto'
+                  $ref: '#/components/schemas/FeeRecord'
         '400':
           description: Bad request
+  /fee/checkout:
+    get:
+      tags: [fee]
+      summary: Get fees calculated for a checkout interval
+      parameters:
+        - in: query
+          name: checkoutDate
+          required: true
+          schema:
+            type: string
+            format: date-time
+          example: '2025-12-20T00:29:00.000Z'
+        - in: query
+          name: expectedCheckinDate
+          required: true
+          schema:
+            type: string
+            format: date-time
+          example: '2025-12-23T00:29:00.000Z'
+      responses:
+        '200':
+          description: Fees calculated for the given interval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CheckoutFeeRecord'
+        '400':
+          description: Bad request or invalid date format
+  /fee/update:
     post:
       tags: [fee]
-      summary: Update fees
+      summary: Update a single fee
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/FeeRecord'
+              $ref: '#/components/schemas/FeeRecord'
+            example:
+              name: CDMR
+              category: Car Group
+              interval: Daily
+              currentAmount: 150.00
+              capAmount: 900.00
       responses:
         '200':
-          description: Fees updated
+          description: Fee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeRecord'
         '400':
           description: Bad request
+        '401':
+          description: Unauthorized
   /user:
     get:
       tags: [user]
@@ -142,7 +185,15 @@ paths:
   /vehicle:
     get:
       tags: [vehicle]
-      summary: Get all vehicles
+      summary: Get all vehicles, optionally filtered by car group
+      parameters:
+        - in: query
+          name: carGroup
+          required: false
+          schema:
+            type: string
+          description: Filter vehicles by car group name (e.g. CDMR)
+          example: CDMR
       responses:
         '200':
           description: List of vehicles
@@ -151,7 +202,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/VehicleDto'
+                  $ref: '#/components/schemas/VehicleRecord'
+        '400':
+          description: Bad request
+        '404':
+          description: No vehicles found for the given car group
         '500':
           description: Server error
   /vehicle/{mva}:
@@ -164,86 +219,167 @@ paths:
           required: true
           schema:
             type: string
+          description: Motor Vehicle Allocation identifier
+          example: MVA1
       responses:
         '200':
           description: Vehicle found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VehicleDto'
+                $ref: '#/components/schemas/VehicleRecord'
+        '400':
+          description: MVA parameter is required
         '404':
           description: Not found
-  /price/net:
-    get:
+  /price:
+    post:
       tags: [price]
-      summary: Get net target sale price
-      parameters:
-        - in: query
-          name: checkoutDate
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - in: query
-          name: expectedCheckinDate
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - in: query
-          name: carGroup
-          required: true
-          schema:
-            type: string
+      summary: Calculate net and gross rental price
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutPricingRecord'
+            example:
+              checkoutDate: '2025-12-20T00:00:00.000Z'
+              expectedCheckinDate: '2025-12-27T00:00:00.000Z'
+              carGroupName: CDMR
+              targetSalePrice: null
+              grossListSalePrice: null
+              additionalFees:
+                - name: ChildSeat
+                  amount: '0'
+                  amountMax: '0'
+              discount: null
       responses:
         '200':
-          description: Net target sale price
+          description: Calculated price result
           content:
             application/json:
               schema:
-                type: number
-                format: decimal
+                $ref: '#/components/schemas/PriceResultRecord'
         '400':
-          description: Bad request
+          description: Bad request or missing parameter
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     LoginRecord:
       type: object
       properties:
         email:
           type: string
+          example: admin@vibes.de
         password:
           type: string
+          example: secret
       required: [email, password]
     FeeRecord:
       type: object
+      description: Fee record used for GET /fee and POST /fee/update
       properties:
         name:
           type: string
+          example: CDMR
         category:
-          type: string
+          $ref: '#/components/schemas/FeeCategoryEnum'
         interval:
-          type: string
-        changeFrom:
-          type: string
-        changeTo:
-          type: string
-      required: [name, category, interval, changeFrom, changeTo]
-    FeeTypeDto:
-      type: object
-      properties:
-        name:
-          type: string
-        category:
-          type: string
-        interval:
-          type: string
-        oldAmount:
-          type: number
+          $ref: '#/components/schemas/FeeIntervalEnum'
         currentAmount:
           type: number
-        modificationUser:
+          format: decimal
+          example: 150.00
+        capAmount:
+          type: number
+          format: decimal
+          example: 900.00
+      required: [name, category, interval, currentAmount, capAmount]
+    CheckoutFeeRecord:
+      type: object
+      description: Fee entry calculated for a specific checkout interval
+      properties:
+        feeName:
           type: string
+          example: CDMR
+        feeCategory:
+          $ref: '#/components/schemas/FeeCategoryEnum'
+        amountCalculatedOnIntervals:
+          type: string
+          example: '450.00'
+        amountAtCheckout:
+          type: string
+          example: '450.00'
+        maxAmount:
+          type: string
+          example: '900.00'
+      required: [feeName, feeCategory, amountCalculatedOnIntervals, amountAtCheckout, maxAmount]
+    PriceResultRecord:
+      type: object
+      description: Calculated price result returned by POST /price
+      properties:
+        netPrice:
+          type: number
+          format: decimal
+          example: 600.00
+        grossPrice:
+          type: number
+          format: decimal
+          example: 714.00
+        taxRate:
+          type: number
+          format: decimal
+          example: 0.19
+      required: [netPrice, grossPrice, taxRate]
+    VehicleRecord:
+      type: object
+      description: Frontend-facing vehicle object
+      properties:
+        mva:
+          type: string
+          example: MVA1
+        carGroup:
+          type: string
+          example: CDMR
+        licensePlate:
+          type: string
+          example: BH-VM-1
+        fuel:
+          type: string
+          example: Electric
+        carModel:
+          type: string
+          example: Model S
+        mileage:
+          type: string
+          nullable: true
+          example: '15000'
+        color:
+          type: string
+          example: Red
+        status:
+          type: string
+          example: Available
+        transmission:
+          type: string
+          example: Automatic
+      required: [mva, carGroup, licensePlate, fuel, carModel, color, status, transmission]
+    FeeCategoryEnum:
+      type: string
+      enum:
+        - Car Group
+        - Additional
+    FeeIntervalEnum:
+      type: string
+      enum:
+        - Daily
+        - Weekly
+        - Weekend
+        - One Time
     UserRecord:
       type: object
       properties:
@@ -260,22 +396,6 @@ components:
           items:
             type: string
       required: [firstname, lastname, password, email, roles]
-    VehicleDto:
-      type: object
-      properties:
-        id:
-          type: string
-        make:
-          type: string
-        model:
-          type: string
-        year:
-          type: integer
-        licensePlate:
-          type: string
-        carGroup:
-          type: string
-      required: [id, make, model, year, licensePlate, carGroup]
     CheckoutRecord:
       type: object
       properties:
@@ -290,6 +410,7 @@ components:
         mva:
           type: string
           description: Motor Vehicle Allocation identifier
+          example: MVA1
         paymentRecord:
           $ref: '#/components/schemas/PaymentRecord'
       required: [checkoutPricingRecord, customerRecord, additionalDriverRecords, mva, paymentRecord]
@@ -300,13 +421,16 @@ components:
           type: string
           format: date-time
           description: Checkout date and time
+          example: '2025-12-20T00:00:00.000Z'
         expectedCheckinDate:
           type: string
           format: date-time
           description: Expected check-in date and time
+          example: '2025-12-27T00:00:00.000Z'
         carGroupName:
           type: string
-          description: Name of the car group (e.g., CDMR, EDMR)
+          description: Name of the car group (e.g., CDMR, IDMR)
+          example: CDMR
         targetSalePrice:
           type: string
           nullable: true
@@ -329,12 +453,15 @@ components:
         name:
           type: string
           description: Name of the additional fee
+          example: ChildSeat
         amount:
           type: string
           description: Fee amount
+          example: '30.00'
         amountMax:
           type: string
           description: Maximum fee amount
+          example: '300.00'
       required: [name, amount, amountMax]
     DiscountRecord:
       type: object
@@ -343,12 +470,15 @@ components:
         percentage:
           type: string
           description: Discount percentage
+          example: '10'
         reason:
           type: string
           description: Reason for discount
+          example: Loyalty discount
         user:
           type: string
           description: User who applied the discount
+          example: admin@vibes.de
       required: [percentage, reason, user]
     CustomerRecord:
       type: object
@@ -365,7 +495,7 @@ components:
         driverSameAsRenter:
           type: string
           description: Indicates if the driver is the same as the renter
-      required: [driverRecord, personRecord, billingAddressRecord, customerNote, driverSameAsRenter]
+      required: [driverRecord, personRecord, customerNote, driverSameAsRenter]
     AdditionalDriverRecord:
       type: object
       properties:
@@ -383,17 +513,21 @@ components:
         licenseNumber:
           type: string
           description: Driver's license number
+          example: B123456789
         licenseCountry:
           type: string
           description: Country that issued the license
+          example: DE
         licenseIssued:
           type: string
           format: date
           description: Date the license was issued
+          example: '2015-06-01'
         licenseExpiry:
           type: string
           format: date
           description: License expiration date
+          example: '2030-06-01'
         licenseImageBase64:
           type: string
           description: Base64 encoded image of the driver's license
@@ -404,35 +538,38 @@ components:
         academicTitle:
           type: string
           description: Academic title (e.g., Dr., Prof.)
+          nullable: true
         firstName:
           type: string
-          description: First name
+          example: Max
         lastName:
           type: string
-          description: Last name
+          example: Mustermann
         dob:
           type: string
           format: date
           description: Date of birth
+          example: '1990-01-15'
         phone:
           type: string
-          description: Phone number
+          example: '+4917612345678'
         email:
           type: string
           format: email
-          description: Email address
+          example: max.mustermann@example.com
         addressRecord:
           $ref: '#/components/schemas/AddressRecord'
         idType:
           type: string
           description: Type of identification (e.g., Passport, ID Card)
+          example: Passport
         idNumber:
           type: string
-          description: Identification number
+          example: C01X00T47
         idExpiryDate:
           type: string
           format: date
-          description: ID expiration date
+          example: '2030-01-01'
         idImageBase64:
           type: string
           description: Base64 encoded image of the ID
@@ -442,64 +579,73 @@ components:
       properties:
         companyName:
           type: string
+          nullable: true
           description: Company name (if applicable)
         street:
           type: string
           description: Street name
-        zip:
-          type: string
-          description: ZIP/Postal code
-        country:
-          type: string
-          description: Country
+          example: Musterstraße
         houseNr:
           type: string
           description: House number
+          example: '42'
+        zip:
+          type: string
+          description: ZIP / Postal code
+          example: '80331'
         city:
           type: string
-          description: City
-      required: [street, zip, country, houseNr, city]
+          example: München
+        country:
+          type: string
+          example: DE
+      required: [street, houseNr, zip, city, country]
     PaymentRecord:
       type: object
       properties:
         cardType:
           type: string
           description: Type of credit card (e.g., Visa, MasterCard)
+          example: Visa
         cardNumber:
           type: string
-          description: Credit card number
+          example: '4111111111111111'
         nameOnCard:
           type: string
-          description: Name as it appears on the card
+          example: MAX MUSTERMANN
         expiryDate:
           type: string
           description: Card expiration date (MM/YY)
+          example: 02/26
         cvv:
           type: string
-          description: Card verification value
+          example: '123'
         amountOnHold:
           type: string
           description: Amount put on hold
+          example: '300'
         checkoutGrossAmount:
           type: string
           description: Total gross amount at checkout
+          example: '714.00'
         paymentDate:
           type: string
           format: date-time
-          description: Date of payment
+          example: '2025-12-20T10:00:00.000Z'
         paymentStatus:
           type: string
-          description: Status of payment (e.g., Pending, Completed)
+          description: Status of payment (e.g., On Hold, Completed)
+          example: On Hold
         authorizationCode:
           type: string
-          description: Payment authorization code
+          example: AUTH123456
       required: [cardType, cardNumber, nameOnCard, expiryDate, cvv, amountOnHold, checkoutGrossAmount, paymentDate, paymentStatus, authorizationCode]
     CheckoutResponse:
       type: object
       properties:
         message:
           type: string
-          description: Response message
+          example: Checkout created successfully
         checkout:
           type: object
           properties:
@@ -515,4 +661,4 @@ components:
               format: date-time
             rentalStatus:
               type: string
-
+              example: Active

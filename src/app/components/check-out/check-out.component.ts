@@ -139,7 +139,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   }
 
   get carGroupFeesOnly(): Fee[] {
-    return (this.fees || []).filter(f => f.feeCategory === 'CarGroup');
+    return (this.fees || []).filter(f => f.feeCategory === 'Car Group');
   }
 
   constructor(

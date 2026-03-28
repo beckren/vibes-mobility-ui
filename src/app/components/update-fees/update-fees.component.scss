@@ -1,26 +1,11 @@
-.container {
-  gap: 20px;
-  overflow: hidden !important;
-}
-.form-container {
-  display: flex;
-  flex: 3;
-  flex-direction: column;
-  overflow-y: hidden;
-  padding-right: 10px;
-}
 :host {
   display: block;
   margin: 30px;
   overflow: hidden;
 }
-mat-card {
-  background-color: transparent;
-  box-shadow: none;
-  height: 70%;
-  overflow-y: hidden;
-  padding-right: 10px;
-  box-sizing: border-box;
+
+.container {
+  gap: 20px;
 }
 
 h2,
@@ -30,145 +15,108 @@ h4 {
   font-family: "Inter";
 }
 
-.oneline-all {
+.fees-filters {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
-.oneline-all > div {
+
+.search-input {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-.row-fields {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 15px;
-  justify-content: space-between;
+  min-width: 160px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background-color: #000000;
+  color: white;
+  box-sizing: border-box;
 }
 
-.row-fields mat-form-field {
+.filter-select {
   flex: 1;
-  min-width: 0;
-}
-.oneline-two {
-  display: flex;
-  gap: 40px;
-}
-.oneline-two > div {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  min-width: 140px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background-color: #000000;
+  color: white;
+  box-sizing: border-box;
+  cursor: pointer;
 }
 
-::ng-deep .mat-optgroup-label {
-  color: white !important; // force white text
+.table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--color-gradient-opaque);
+  border: 1px solid white;
 }
 
-::ng-deep .mat-option {
-  color: white; // make individual options white too
-}
-.button-group {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-@media (max-width: 1350px) {
-  .container {
-    padding: 10px;
-  }
-
-  .form-container {
-    padding: 5px;
-  }
-
-  .oneline-all,
-  .oneline-two {
-    flex-direction: column;
-  }
-
-  .oneline-all > div,
-  .oneline-two > div {
-    gap: 10px;
-  }
-
-  .row-fields {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .button-group {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  button {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 5px;
-  }
-
-  .form-container {
-    padding: 5px;
-  }
-
-  .oneline-all,
-  .oneline-two {
-    flex-direction: column;
-  }
-
-  .oneline-all > div,
-  .oneline-two > div {
-    gap: 8px;
-  }
-
-  .row-fields {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .button-group {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  button {
-    width: 100%;
-    padding: 15px;
-  }
-}
-
-.fees-list-container {
-  margin-top: 20px;
-}
-
-.fees-list-title {
-  margin-bottom: 12px;
-}
-
-.fees-table {
+table {
   width: 100%;
   background: transparent;
+  color: white;
+}
 
-  th.mat-header-cell {
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 600;
-    border-bottom-color: rgba(255, 255, 255, 0.2);
+th {
+  background: #242323;
+  color: white;
+  font-weight: bold;
+  font-family: "Inter";
+}
+
+td {
+  padding: 12px;
+  color: white;
+}
+
+.mat-elevation-z8 {
+  box-shadow: none;
+}
+
+// Inline editing
+.inline-field {
+  max-width: 120px;
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    padding: 0 8px;
   }
 
-  td.mat-cell {
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding: 4px 0;
+    min-height: unset;
+  }
+
+  input {
+    font-size: 14px;
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+.row-actions {
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+
+  button {
     color: white;
-    border-bottom-color: rgba(255, 255, 255, 0.1);
   }
+}
 
-  tr.mat-row:hover {
-    background: rgba(255, 255, 255, 0.05);
+.editing-row {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 768px) {
+  .fees-filters {
+    flex-direction: column;
   }
 }

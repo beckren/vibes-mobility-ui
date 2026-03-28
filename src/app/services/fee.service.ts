@@ -4,33 +4,27 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environments';
 import { Observable } from 'rxjs';
 
-interface FeeTypeDto {
-  feeTypeId: number;
+export interface FeeRecord {
   name: string;
-  categoryEnum: 'Additional' | 'CarGroup';
-  interval: 'Daily' | 'Weekly' | 'Weekend';
+  category: 'Additional' | 'Car Group';
+  interval: 'Daily' | 'Weekly' | 'Weekend' | 'One Time';
   currentAmount: number;
-  maxAmount: number;
+  capAmount: number;
 }
 
-interface ServiceResult<T> {
-  isSuccess: boolean;
-  data: T | null;
-  errors: string | null;
-}
 
 @Injectable({ providedIn: 'root' })
 export class FeeService {
   constructor(private http: HttpClient) { }
 
-  getAllFees(): Observable<ServiceResult<FeeTypeDto[]>> {
+  getAllFees(): Observable<FeeRecord[]> {
     const headers = this.authHeaders();
-    return this.http.get<ServiceResult<FeeTypeDto[]>>(`${environment.apiUrl}/fee`, { headers });
+    return this.http.get<FeeRecord[]>(`${environment.apiUrl}/fee`, { headers });
   }
 
-  updateFees(body: any[]): Observable<ServiceResult<FeeTypeDto[]>> {
+  updateFee(body: FeeRecord): Observable<FeeRecord> {
     const headers = this.authHeaders();
-    return this.http.post<ServiceResult<FeeTypeDto[]>>(`${environment.apiUrl}/fee/update`, body, { headers });
+    return this.http.post<FeeRecord>(`${environment.apiUrl}/fee/update`, body, { headers });
   }
 
   private authHeaders() {

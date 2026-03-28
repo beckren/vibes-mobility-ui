@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environments';
 
 export enum FeeCategory {
   Additional = 'Additional',
-  CarGroup = 'CarGroup'
+  CarGroup = 'Car Group'
 }
 
 export interface Fee {
@@ -32,7 +32,7 @@ export class FeeService {
   } */
 
   getAllFeesByInterval(checkoutDate: string, expectedCheckinDate: string): Observable<Fee[]> {
-    return this.http.get<Fee[]>(`${environment.apiUrl}/fee`, {
+    return this.http.get<Fee[]>(`${environment.apiUrl}/fee/checkout`, {
       params: { checkoutDate, expectedCheckinDate }
     }).pipe(
       map((fees: Fee[]) => this.summarizeFees(fees))

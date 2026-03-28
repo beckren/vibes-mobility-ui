@@ -1,97 +1,90 @@
 <h2 class="title">Update Fees</h2>
 
 <div class="container">
-  <mat-card class="form-container">
-    <mat-card-content>
-      <form [formGroup]="updateFeesForm">
-        <div class="section">
-          <div class="oneline-all">
-            <div>
-              <mat-divider></mat-divider>
-              <div class="row-fields">
-                <mat-form-field appearance="outline">
-                  <mat-label>Fee Name</mat-label>
-                  <mat-select formControlName="additionalFee">
-                    <mat-optgroup
-                      *ngFor="let group of feeGroups"
-                      [label]="group.name"
-                    >
-                      <mat-option
-                        *ngFor="let fee of group.options"
-                        [value]="fee.value"
-                      >
-                        {{ fee.viewValue }}
-                      </mat-option>
-                    </mat-optgroup>
-                  </mat-select>
-                </mat-form-field>
+  <div class="fees-filters">
+    <input
+      placeholder="Search by fee name"
+      class="search-input"
+      [(ngModel)]="filterName"
+      (input)="applyFilters()"
+    />
+    <select class="filter-select" [(ngModel)]="filterCategory" (change)="applyFilters()">
+      <option value="">All Categories</option>
+      <option value="Car Group">Car Group</option>
+      <option value="Additional">Additional</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="filterInterval" (change)="applyFilters()">
+      <option value="">All Intervals</option>
+      <option value="Daily">Daily</option>
+      <option value="Weekly">Weekly</option>
+      <option value="Weekend">Weekend</option>
+    </select>
+  </div>
 
-                <mat-form-field appearance="outline">
-                  <mat-label>Fee Type</mat-label>
-                  <mat-select formControlName="additionalFeeType">
-                    <mat-option value="Daily">Daily</mat-option>
-                    <mat-option value="Weekly">Weekly</mat-option>
-                    <mat-option value="Weekend">Weekend</mat-option>
-                  </mat-select>
-                </mat-form-field>
+  <div class="table-container" *ngIf="allFees.length > 0">
+    <table mat-table [dataSource]="feesDataSource" class="mat-elevation-z8">
 
-                <mat-form-field class="gray-bg" appearance="fill">
-                  <mat-label>Change From</mat-label>
-                  <input matInput formControlName="additionalFeeFrom" />
-                </mat-form-field>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Fee Name</th>
+        <td mat-cell *matCellDef="let fee">{{ fee.name }}</td>
+      </ng-container>
 
-                <mat-form-field appearance="outline">
-                  <mat-label>Change To</mat-label>
-                  <input matInput formControlName="additionalFeeTo" />
-                </mat-form-field>
-              </div>
-            </div>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let fee">{{ fee.category }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="interval">
+        <th mat-header-cell *matHeaderCellDef>Interval</th>
+        <td mat-cell *matCellDef="let fee">{{ fee.interval }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="currentAmount">
+        <th mat-header-cell *matHeaderCellDef>Current Amount</th>
+        <td mat-cell *matCellDef="let fee">
+          <ng-container *ngIf="editingKey !== feeKey(fee)">
+            {{ fee.currentAmount | currency }}
+          </ng-container>
+          <mat-form-field *ngIf="editingKey === feeKey(fee)" appearance="outline" class="inline-field">
+            <input matInput type="number" [(ngModel)]="editValues.currentAmount" />
+          </mat-form-field>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="maxAmount">
+        <th mat-header-cell *matHeaderCellDef>Max Amount</th>
+        <td mat-cell *matCellDef="let fee">
+          <ng-container *ngIf="editingKey !== feeKey(fee)">
+            {{ fee.capAmount | currency }}
+          </ng-container>
+          <mat-form-field *ngIf="editingKey === feeKey(fee)" appearance="outline" class="inline-field">
+            <input matInput type="number" [(ngModel)]="editValues.capAmount" />
+          </mat-form-field>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let fee">
+          <div class="row-actions" *ngIf="editingKey !== feeKey(fee)">
+            <button mat-icon-button (click)="startEdit(fee)" matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
           </div>
-        </div>
+          <div class="row-actions" *ngIf="editingKey === feeKey(fee)">
+            <button mat-icon-button (click)="saveRow(fee)" matTooltip="Save" [disabled]="savingKey === feeKey(fee)">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelEdit()" matTooltip="Cancel" [disabled]="savingKey === feeKey(fee)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
 
-        <div class="button-group">
-          <button mat-raised-button class="buttons1" (click)="onSave()">Save</button>
-          <button mat-raised-button class="nobgbutton" (click)="goback()">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="fees-list-container" *ngIf="allFees.length > 0">
-    <mat-card-content>
-      <h3 class="fees-list-title">Current Fees</h3>
-      <table mat-table [dataSource]="allFees" class="fees-table">
-
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Fee Name</th>
-          <td mat-cell *matCellDef="let fee">{{ fee.name }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="categoryEnum">
-          <th mat-header-cell *matHeaderCellDef>Category</th>
-          <td mat-cell *matCellDef="let fee">{{ fee.categoryEnum }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="interval">
-          <th mat-header-cell *matHeaderCellDef>Interval</th>
-          <td mat-cell *matCellDef="let fee">{{ fee.interval }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="currentAmount">
-          <th mat-header-cell *matHeaderCellDef>Current Amount</th>
-          <td mat-cell *matCellDef="let fee">{{ fee.currentAmount | currency }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="maxAmount">
-          <th mat-header-cell *matHeaderCellDef>Max Amount</th>
-          <td mat-cell *matCellDef="let fee">{{ fee.maxAmount | currency }}</td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    </mat-card-content>
-  </mat-card>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          [class.editing-row]="editingKey === feeKey(row)"></tr>
+    </table>
+  </div>
 </div>
