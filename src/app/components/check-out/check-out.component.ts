@@ -250,7 +250,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       expiryDate: new FormControl(null), // Full date: 2025-08-01
       cvv: ['', [Validators.maxLength(4), Validators.pattern(/^\d{0,4}$/)]],
       amountOnHold: [300],
-      checkoutGrossAmount: [''],
+      checkoutGrossAmount: new FormControl({ value: '', disabled: true }),
       paymentDate: [''],
       paymentStatus: [''],
       authorizationCode: [''],
@@ -366,11 +366,25 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       this.pricingFormGroup.get('discountAppliedBy')!.valueChanges,
       this.additionalFees.valueChanges
     ).pipe(takeUntil(this.destroy$)).subscribe(() => this.canCalculate = true);
+
+    // Auto-calculate checkoutGrossAmount = grossAmount + amountOnHold
+    merge(
+      this.pricingFormGroup.get('grossAmount')!.valueChanges,
+      this.paymentFormGroup.get('amountOnHold')!.valueChanges
+    ).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.updateCheckoutGrossAmount();
+    });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private updateCheckoutGrossAmount(): void {
+    const gross = parseFloat(this.pricingFormGroup.get('grossAmount')?.value) || 0;
+    const hold = parseFloat(this.paymentFormGroup.get('amountOnHold')?.value) || 0;
+    this.paymentFormGroup.get('checkoutGrossAmount')?.setValue((gross + hold).toFixed(2));
   }
 
   toLocalISOStringNoMs(date: Date): string {
@@ -660,6 +674,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
           grossAmount: data.grossPrice,
           tax: data.taxRate * 100
         });
+        this.updateCheckoutGrossAmount();
         this.canCalculate = false;
       },
       error: (error) => {
