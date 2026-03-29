@@ -114,6 +114,8 @@ export class CheckInComponent implements OnInit {
 
       actualCheckOutDate: new FormControl({ value: null, disabled: true }),
       actualCheckOutTime: new FormControl({ value: null, disabled: true }),
+      expectedCheckInDate: [null],
+      expectedCheckInTime: [''],
       actualCheckInDate: [null],
       actualCheckInTime: [''],
       kmOut: new FormControl({ value: ' ', disabled: true }),

@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, FormControl, FormsModule, Validators } from '@angular/forms';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -102,6 +102,7 @@ const FULL_DATE_FORMATS = {
 
 })
 export class CheckOutComponent implements OnInit, OnDestroy {
+  @ViewChild('stepper') stepper!: MatStepper;
   driverStepVisible = false;
   isMobile = false;
   canCalculate = false;
@@ -699,6 +700,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         });
         // Generate and print invoice
         this.printInvoice(payload);
+        this.resetForm();
       },
       error: (err) => {
         console.error('Checkout submission failed', err);
@@ -710,6 +712,28 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  private resetForm(): void {
+    this.pricingFormGroup.reset();
+    this.customerFormGroup.reset({ sameBillingAddress: 'yes', driverSameAsRenter: 'yes' });
+    this.driverFormGroup.reset();
+    this.carInformationFormGroup.reset();
+    this.paymentFormGroup.reset({ amountOnHold: 300 });
+    this.additionalDriverForms = [];
+    this.CheckOutDateControl.reset();
+    this.CheckOutTimeControl.reset();
+    this.CheckInDateControl.reset();
+    this.CheckInTimeControl.reset();
+    this.fileMap = {};
+    this.fees = [];
+    this.vehicles = [];
+    this.showAdditionalFees = false;
+    this.showDiscount = false;
+    this.noVehiclesForGroup = false;
+    this.driverStepVisible = false;
+    this.canCalculate = false;
+    this.stepper.reset();
   }
 
   /**
