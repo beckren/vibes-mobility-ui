@@ -578,8 +578,8 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
 
     const payload: PriceRequest = {
       carGroupName: carGroup,
-      checkOutDate: checkOutDateTime.toISOString(),
-      expectedCheckInDate: checkInDateTime.toISOString(),
+      checkoutDate: checkOutDateTime.toISOString(),
+      expectedCheckinDate: checkInDateTime.toISOString(),
       additionalFees: additionalFees.length > 0 ? additionalFees : undefined,
       discount: discount
     };

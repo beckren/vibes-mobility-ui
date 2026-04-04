@@ -77,11 +77,11 @@ const FULL_DATE_FORMATS = {
 export class CheckInComponent implements OnInit {
   checkInForm!: FormGroup;
   showAdditionalFees = false;
-  actualCheckOutDateControl = new FormControl();
-  actualCheckOutTimeControl = new FormControl();
+  actualCheckoutDateControl = new FormControl();
+  actualCheckoutTimeControl = new FormControl();
 
-  actualCheckInDateControl = new FormControl();
-  actualCheckInTimeControl = new FormControl();
+  actualCheckinDateControl = new FormControl();
+  actualCheckinTimeControl = new FormControl();
 
   checkoutDatetime = new FormControl();
   checkinDatetime = new FormControl();
@@ -157,8 +157,8 @@ export class CheckInComponent implements OnInit {
     return this.checkInForm.get('additionalFees') as FormArray;
   }
   updateActualCheckOut() {
-    const date = this.actualCheckOutDateControl.value;
-    const time = this.actualCheckOutTimeControl.value;
+    const date = this.actualCheckoutDateControl.value;
+    const time = this.actualCheckoutTimeControl.value;
     if (date && time) {
       const [hours, minutes] = time.split(':');
       const combined = new Date(date);
@@ -169,8 +169,8 @@ export class CheckInComponent implements OnInit {
   }
 
   updateActualCheckIn() {
-    const date = this.actualCheckInDateControl.value;
-    const time = this.actualCheckInTimeControl.value;
+    const date = this.actualCheckinDateControl.value;
+    const time = this.actualCheckinTimeControl.value;
     if (date && time) {
       const [hours, minutes] = time.split(':');
       const combined = new Date(date);

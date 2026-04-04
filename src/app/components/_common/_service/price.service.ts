@@ -17,8 +17,8 @@ export interface Discount {
 }
 
 export interface PriceRequest {
-  checkOutDate: string;
-  expectedCheckInDate: string;
+  checkoutDate: string;
+  expectedCheckinDate: string;
   carGroupName: string;
   targetSalePrice?: string;
   grossListSalePrice?: string;

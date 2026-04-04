@@ -114,10 +114,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   carInformationFormGroup!: FormGroup;
   paymentFormGroup!: FormGroup;
   carGroup = new FormControl();
-  CheckOutTimeControl = new FormControl();
-  CheckInTimeControl = new FormControl();
-  CheckOutDateControl = new FormControl();
-  CheckInDateControl = new FormControl();
+  checkoutTimeControl = new FormControl();
+  checkinTimeControl = new FormControl();
+  checkoutDateControl = new FormControl();
+  checkinDateControl = new FormControl();
   checkoutDatetime = new FormControl();
   checkinDatetime = new FormControl();
   selectedFile: File | null = null;
@@ -276,10 +276,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     // Remove previous valueChanges subscriptions and helper method
     // Use combineLatest for all four controls
     combineLatest([
-      this.CheckOutDateControl.valueChanges,
-      this.CheckOutTimeControl.valueChanges,
-      this.CheckInDateControl.valueChanges,
-      this.CheckInTimeControl.valueChanges
+      this.checkoutDateControl.valueChanges,
+      this.checkoutTimeControl.valueChanges,
+      this.checkinDateControl.valueChanges,
+      this.checkinTimeControl.valueChanges
     ])
       .pipe(
         filter(([coDate, coTime, ciDate, ciTime]) => !!coDate && !!coTime && !!ciDate && !!ciTime)
@@ -356,10 +356,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     });
 
     merge(
-      this.CheckOutDateControl.valueChanges,
-      this.CheckOutTimeControl.valueChanges,
-      this.CheckInDateControl.valueChanges,
-      this.CheckInTimeControl.valueChanges,
+      this.checkoutDateControl.valueChanges,
+      this.checkoutTimeControl.valueChanges,
+      this.checkinDateControl.valueChanges,
+      this.checkinTimeControl.valueChanges,
       this.pricingFormGroup.get('carGroup')!.valueChanges,
       this.pricingFormGroup.get('discountPercentage')!.valueChanges,
       this.pricingFormGroup.get('discountReason')!.valueChanges,
@@ -393,9 +393,9 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   }
 
   updateActualCheckOut() {
-    const date = this.CheckOutDateControl.value;
+    const date = this.checkoutDateControl.value;
 
-    const time = this.CheckOutTimeControl.value;
+    const time = this.checkoutTimeControl.value;
     if (date && time) {
       const [hours, minutes] = time.split(':');
       const combined = new Date(date);
@@ -406,8 +406,8 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   }
 
   updateActualCheckIn() {
-    const date = this.CheckInDateControl.value;
-    const time = this.CheckInTimeControl.value;
+    const date = this.checkinDateControl.value;
+    const time = this.checkinTimeControl.value;
     if (date && time) {
       const [hours, minutes] = time.split(':');
       const combined = new Date(date);
@@ -623,10 +623,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   }
 
   calculatePrice() {
-    const checkOutDate = this.CheckOutDateControl.value;
-    const checkOutTime = this.CheckOutTimeControl.value;
-    const checkInDate = this.CheckInDateControl.value;
-    const checkInTime = this.CheckInTimeControl.value;
+    const checkOutDate = this.checkoutDateControl.value;
+    const checkOutTime = this.checkoutTimeControl.value;
+    const checkInDate = this.checkinDateControl.value;
+    const checkInTime = this.checkinTimeControl.value;
     const carGroup = this.pricingFormGroup.get('carGroup')?.value;
 
     if (!checkOutDate || !checkOutTime || !checkInDate || !checkInTime || !carGroup) {
@@ -660,8 +660,8 @@ export class CheckOutComponent implements OnInit, OnDestroy {
 
     const payload: PriceRequest = {
       carGroupName: carGroup,
-      checkOutDate: checkOutDateTime.toISOString(),
-      expectedCheckInDate: checkInDateTime.toISOString(),
+      checkoutDate: checkOutDateTime.toISOString(),
+      expectedCheckinDate: checkInDateTime.toISOString(),
       additionalFees: additionalFees.length > 0 ? additionalFees : undefined,
       discount: discount
     };
@@ -736,10 +736,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     this.carInformationFormGroup.reset();
     this.paymentFormGroup.reset({ amountOnHold: 300 });
     this.additionalDriverForms = [];
-    this.CheckOutDateControl.reset();
-    this.CheckOutTimeControl.reset();
-    this.CheckInDateControl.reset();
-    this.CheckInTimeControl.reset();
+    this.checkoutDateControl.reset();
+    this.checkoutTimeControl.reset();
+    this.checkinDateControl.reset();
+    this.checkinTimeControl.reset();
     this.fileMap = {};
     this.fees = [];
     this.vehicles = [];
@@ -756,10 +756,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
    */
   async buildCheckoutPayload(): Promise<CheckoutPayload | null> {
     // Build checkout and checkin datetime
-    const checkOutDate = this.CheckOutDateControl.value;
-    const checkOutTime = this.CheckOutTimeControl.value;
-    const checkInDate = this.CheckInDateControl.value;
-    const checkInTime = this.CheckInTimeControl.value;
+    const checkOutDate = this.checkoutDateControl.value;
+    const checkOutTime = this.checkoutTimeControl.value;
+    const checkInDate = this.checkinDateControl.value;
+    const checkInTime = this.checkinTimeControl.value;
 
     if (!checkOutDate || !checkOutTime || !checkInDate || !checkInTime) {
       return null;

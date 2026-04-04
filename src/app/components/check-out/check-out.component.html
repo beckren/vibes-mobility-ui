@@ -14,16 +14,16 @@
               <mat-label>Check Out Date</mat-label>
               <input
                 matInput
-                [matDatepicker]="checkOutDatePicker"
-                [formControl]="CheckOutDateControl"
+                [matDatepicker]="checkoutDatePicker"
+                [formControl]="checkoutDateControl"
                 (dateChange)="updateActualCheckOut()"
               />
               <mat-datepicker-toggle
                 matSuffix
-                [for]="checkOutDatePicker"
+                [for]="checkoutDatePicker"
               ></mat-datepicker-toggle>
               <mat-datepicker
-                #checkOutDatePicker
+                #checkoutDatePicker
                 [touchUi]="true"
               ></mat-datepicker>
             </mat-form-field>
@@ -32,7 +32,7 @@
               <input
                 matInput
                 type="time"
-                [formControl]="CheckOutTimeControl"
+                [formControl]="checkoutTimeControl"
                 (change)="updateActualCheckOut()"
               />
             </mat-form-field>
@@ -42,7 +42,7 @@
               <input
                 matInput
                 [matDatepicker]="checkInDatePicker"
-                [formControl]="CheckInDateControl"
+                [formControl]="checkinDateControl"
                 (dateChange)="updateActualCheckIn()"
               />
               <mat-datepicker-toggle
@@ -59,7 +59,7 @@
               <input
                 matInput
                 type="time"
-                [formControl]="CheckInTimeControl"
+                [formControl]="checkinTimeControl"
                 (change)="updateActualCheckIn()"
               />
             </mat-form-field>
@@ -968,8 +968,8 @@
     <mat-card-content>
       <p><strong>First Name:</strong> {{ customerFormGroup.get('firstName')?.value }}</p>
       <p><strong>Last Name:</strong> {{ customerFormGroup.get('lastName')?.value }}</p>
-      <p><strong>Check Out:</strong> {{ CheckOutDateControl.value | date:'dd/MM/yyyy' }}</p>
-      <p><strong>Check In:</strong> {{ CheckInDateControl.value | date:'dd/MM/yyyy' }}</p>
+      <p><strong>Check Out:</strong> {{ checkoutDateControl.value | date:'dd/MM/yyyy' }}</p>
+      <p><strong>Check In:</strong> {{ checkinDateControl.value | date:'dd/MM/yyyy' }}</p>
       <p><strong>Car Group:</strong> {{ pricingFormGroup.get('carGroup')?.value }}</p>
       <p><strong>Extras:</strong> €{{ getExtrasTotal() }}</p>
       <p><strong>Net Amount:</strong> €{{ pricingFormGroup.get('netAmount')?.value }}</p>
