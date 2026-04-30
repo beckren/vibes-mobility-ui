@@ -147,6 +147,72 @@ paths:
         '404':
           description: Not found
   /checkout:
+    get:
+      tags: [checkout]
+      summary: Search rentals by optional filters
+      parameters:
+        - in: query
+          name: rentalId
+          required: false
+          schema:
+            type: string
+          description: Filter by rental ID
+        - in: query
+          name: firstName
+          required: false
+          schema:
+            type: string
+          description: Filter by customer first name (partial match)
+        - in: query
+          name: lastName
+          required: false
+          schema:
+            type: string
+          description: Filter by customer last name (partial match)
+        - in: query
+          name: mva
+          required: false
+          schema:
+            type: string
+          description: Filter by Motor Vehicle Allocation identifier
+        - in: query
+          name: carGroup
+          required: false
+          schema:
+            type: string
+          description: Filter by car group name (e.g. CDMR)
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [Active, Completed, Cancelled]
+          description: Filter by rental status
+        - in: query
+          name: checkoutDateFrom
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter rentals checked out on or after this date
+        - in: query
+          name: checkoutDateTo
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter rentals checked out on or before this date
+      responses:
+        '200':
+          description: List of matching rentals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RentalSearchResult'
+        '400':
+          description: Bad request
     post:
       tags: [checkout]
       summary: Create a new checkout
@@ -180,8 +246,38 @@ paths:
       responses:
         '200':
           description: Checkout found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalDetail'
         '404':
           description: Not found
+    put:
+      tags: [checkout]
+      summary: Update an existing rental
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRecord'
+      responses:
+        '200':
+          description: Rental updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '400':
+          description: Bad request
+        '404':
+          description: Rental not found
   /vehicle:
     get:
       tags: [vehicle]
@@ -662,3 +758,58 @@ components:
             rentalStatus:
               type: string
               example: Active
+    RentalSearchResult:
+      type: object
+      description: Lightweight rental record for search results
+      properties:
+        rentalId:
+          type: string
+          example: 'R00001'
+        firstName:
+          type: string
+          example: Max
+        lastName:
+          type: string
+          example: Mustermann
+        carGroup:
+          type: string
+          example: CDMR
+        mva:
+          type: string
+          example: MVA1
+        checkoutDate:
+          type: string
+          format: date-time
+          example: '2025-12-20T10:00:00.000Z'
+        checkinDate:
+          type: string
+          format: date-time
+          example: '2025-12-27T10:00:00.000Z'
+        status:
+          type: string
+          example: Active
+        grossAmount:
+          type: string
+          example: '714.00'
+      required: [rentalId, firstName, lastName, carGroup, mva, checkoutDate, checkinDate, status, grossAmount]
+    RentalDetail:
+      type: object
+      description: Full rental record returned by GET /checkout/{id}
+      properties:
+        rentalId:
+          type: string
+          example: 'R00001'
+        checkoutPricingRecord:
+          $ref: '#/components/schemas/CheckoutPricingRecord'
+        customerRecord:
+          $ref: '#/components/schemas/CustomerRecord'
+        additionalDriverRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdditionalDriverRecord'
+        mva:
+          type: string
+          example: MVA1
+        paymentRecord:
+          $ref: '#/components/schemas/PaymentRecord'
+      required: [rentalId, checkoutPricingRecord, customerRecord, additionalDriverRecords, mva, paymentRecord]

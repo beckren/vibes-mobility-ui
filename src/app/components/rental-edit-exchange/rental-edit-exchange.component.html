@@ -1,285 +1,190 @@
-<h2 class="title">Display Rental</h2>
+<h2 class="title">Edit Rental</h2>
 
 <div class="container">
-  <mat-horizontal-stepper [linear]="true" #stepper headerPosition="bottom">
-    <mat-step label="Pricing" state="phone">
+  <mat-horizontal-stepper [linear]="false" #stepper headerPosition="bottom">
+
+    <!-- Step 1: Search -->
+    <mat-step label="Search">
       <mat-card class="form-container">
-        <mat-card-header><h3>Search</h3></mat-card-header>
+        <mat-card-header><h3>Search Rental</h3></mat-card-header>
         <mat-card-content>
           <mat-divider></mat-divider><br />
 
-          <form [formGroup]="searchForm" (ngSubmit)="fetchRental()">
+          <form [formGroup]="searchForm" (ngSubmit)="searchRentals()">
             <div class="grid-fields">
               <mat-form-field appearance="outline">
-                <mat-label>RAN, MVA</mat-label>
-                <input
-                  matInput
-                  formControlName="rentalNumber"
-                  (keydown.enter)="fetchRental()"
-                />
+                <mat-label>Rental ID</mat-label>
+                <input matInput formControlName="rentalId" />
               </mat-form-field>
 
-              <button
-                mat-raised-button
-                color="primary"
-                class="buttons"
-                type="button"
-                (click)="openExchangeForm()"
-              >
-                Exchange
-              </button>
-            </div>
-          </form>
-        </mat-card-content>
-        <!--EXHChange form
-        -->
-       <mat-card *ngIf="showExchangeForm && currentCarForm && newCarForm" class="form-container" style="margin-top: 20px">
-  <mat-card-content>
-    <h3>Exchange Vehicle</h3>
-    <mat-divider></mat-divider><br />
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" />
+              </mat-form-field>
 
-    <p>Did the car leave the lot?</p>
-    <mat-radio-group (change)="setCarLeftLot($event.value)">
-      <mat-radio-button value="no">No</mat-radio-button>
-      <mat-radio-button value="yes">Yes</mat-radio-button>
-    </mat-radio-group>
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" />
+              </mat-form-field>
 
-    <!-- 🚗 Current Car -->
-    <h4 style="margin-top: 20px">Current Car</h4>
-    <div class="grid-fields" [formGroup]="currentCarForm">
-      <mat-form-field appearance="outline">
-        <mat-label>MVA</mat-label>
-        <input matInput formControlName="mva" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Plate</mat-label>
-        <input matInput formControlName="plate" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Model</mat-label>
-        <input matInput formControlName="model" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Status</mat-label>
-        <input matInput formControlName="status" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Mileage</mat-label>
-        <input matInput formControlName="mileage" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Check Out</mat-label>
-        <input matInput formControlName="checkOut" />
-      </mat-form-field>
-    </div>
+              <mat-form-field appearance="outline">
+                <mat-label>MVA</mat-label>
+                <input matInput formControlName="mva" />
+              </mat-form-field>
 
-    <!-- 🧾 Extra info if car left lot -->
-    <div *ngIf="carLeftLot === 'yes'" style="margin-top: 20px">
-      <h4>Inspection Details</h4>
-      <div class="grid-fields" [formGroup]="inspectionForm">
-        <mat-form-field appearance="outline">
-          <mat-label>KM In</mat-label>
-          <input matInput formControlName="kmIn" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Purchase Fuel (€)</mat-label>
-          <input matInput formControlName="purchaseFuel" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Fuel In (out of 8)</mat-label>
-          <input matInput formControlName="fuelIn" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Adjustments (€)</mat-label>
-          <input matInput formControlName="adjustments" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Damages</mat-label>
-          <input matInput formControlName="damages" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Accident</mat-label>
-          <input matInput formControlName="accident" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Other</mat-label>
-          <input matInput formControlName="other" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Reason</mat-label>
-          <input matInput formControlName="reason" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Amount (€)</mat-label>
-          <input matInput formControlName="amount" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>One-Way</mat-label>
-          <mat-select formControlName="oneWay">
-            <mat-option value="yes">Yes</mat-option>
-            <mat-option value="no">No</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Misc</mat-label>
-          <input matInput formControlName="misc" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Misc Fee (€)</mat-label>
-          <input matInput formControlName="miscFee" />
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- 🚘 New Car -->
-    <h4 style="margin-top: 20px">New Car</h4>
-    <div class="grid-fields" [formGroup]="newCarForm">
-      <mat-form-field appearance="outline">
-        <mat-label>MVA</mat-label>
-        <input matInput formControlName="mva" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Year</mat-label>
-        <input matInput formControlName="year" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Model</mat-label>
-        <input matInput formControlName="model" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Color</mat-label>
-        <input matInput formControlName="color" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Mileage</mat-label>
-        <input matInput formControlName="mileage" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Fuel (out of 8)</mat-label>
-        <input matInput formControlName="fuel" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Plate</mat-label>
-        <input matInput formControlName="plate" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Status</mat-label>
-        <input matInput formControlName="status" />
-      </mat-form-field>
-    </div>
-
-    <div class="buttons-group" style="margin-top: 20px">
-      <button mat-raised-button color="primary" (click)="submitExchange()">
-        Confirm Exchange
-      </button>
-    </div>
-  </mat-card-content>
-</mat-card>
-
-
-        <mat-card-header>
-          <h3>Dates</h3>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-divider></mat-divider><br />
-          <div class="grid-fields">
-            <mat-form-field appearance="outline" class="gray-bg">
-              <mat-label>Check Out Date</mat-label>
-              <input
-                matInput
-                [matDatepicker]="checkOutDatePicker"
-                [formControl]="CheckOutDateControl"
-                (dateChange)="updateActualCheckOut()"
-              />
-              <mat-datepicker-toggle
-                matSuffix
-                [for]="checkOutDatePicker"
-              ></mat-datepicker-toggle>
-              <mat-datepicker
-                #checkOutDatePicker
-                [touchUi]="true"
-              ></mat-datepicker>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="gray-bg">
-              <mat-label>Check Out Time</mat-label>
-              <input
-                matInput
-                type="time"
-                [formControl]="CheckOutTimeControl"
-                (change)="updateActualCheckOut()"
-              />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="readonly-field">
-              <mat-label>Check In Date</mat-label>
-              <input
-                matInput
-                [matDatepicker]="checkInDatePicker"
-                [formControl]="CheckInDateControl"
-                (dateChange)="updateActualCheckIn()"
-              />
-              <mat-datepicker-toggle
-                matSuffix
-                [for]="checkInDatePicker"
-              ></mat-datepicker-toggle>
-              <mat-datepicker
-                #checkInDatePicker
-                [touchUi]="true"
-              ></mat-datepicker>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="readonly-field">
-              <mat-label>Check In Time</mat-label>
-              <input
-                matInput
-                type="time"
-                [formControl]="CheckInTimeControl"
-                (change)="updateActualCheckIn()"
-              />
-            </mat-form-field>
-          </div>
-          <h3 class="title">Pricing</h3>
-
-          <mat-divider></mat-divider><br />
-
-          <form
-            [formGroup]="pricingFormGroup"
-            (keydown.enter)="focusNext($event)"
-          >
-            <div class="grid-fields">
-              <mat-form-field appearance="outline" class="readonly-field">
+              <mat-form-field appearance="outline">
                 <mat-label>Car Group</mat-label>
                 <mat-select formControlName="carGroup">
-                  <mat-option value="IDMR">IDMR</mat-option>
-                  <mat-option value="CDMR">CDMR</mat-option>
+                  <mat-option value="">All</mat-option>
+                  <mat-option *ngFor="let cg of carGroupOptions" [value]="cg">
+                    {{ cg }}
+                  </mat-option>
                 </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option value="">All</mat-option>
+                  <mat-option *ngFor="let s of statusOptions" [value]="s">
+                    {{ s }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Check-Out From</mat-label>
+                <input matInput [matDatepicker]="searchDateFrom" formControlName="checkoutDateFrom" />
+                <mat-datepicker-toggle matSuffix [for]="searchDateFrom"></mat-datepicker-toggle>
+                <mat-datepicker #searchDateFrom [touchUi]="true"></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Check-Out To</mat-label>
+                <input matInput [matDatepicker]="searchDateTo" formControlName="checkoutDateTo" />
+                <mat-datepicker-toggle matSuffix [for]="searchDateTo"></mat-datepicker-toggle>
+                <mat-datepicker #searchDateTo [touchUi]="true"></mat-datepicker>
               </mat-form-field>
             </div>
 
             <div class="button-group">
-              <button
-                mat-raised-button
-                color="primary"
-                class="buttons"
-                type="button"
-                [disabled]="!canCalculate"
-                (click)="calculatePrice()"
-              >
+              <button mat-raised-button color="primary" class="buttons" type="submit">
+                Search
+              </button>
+            </div>
+          </form>
+
+          <!-- Search Results Table -->
+          <div *ngIf="searchDataSource.data.length > 0" class="search-results">
+            <h3>Results</h3>
+            <mat-divider></mat-divider><br />
+
+            <table mat-table [dataSource]="searchDataSource" matSort class="results-table">
+              <ng-container matColumnDef="rentalId">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Rental ID</th>
+                <td mat-cell *matCellDef="let row">{{ row.rentalId }}</td>
+              </ng-container>
+              <ng-container matColumnDef="firstName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>First Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.firstName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="lastName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.lastName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="carGroup">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Car Group</th>
+                <td mat-cell *matCellDef="let row">{{ row.carGroup }}</td>
+              </ng-container>
+              <ng-container matColumnDef="mva">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>MVA</th>
+                <td mat-cell *matCellDef="let row">{{ row.mva }}</td>
+              </ng-container>
+              <ng-container matColumnDef="checkoutDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Check-Out</th>
+                <td mat-cell *matCellDef="let row">{{ row.checkoutDate | date:'dd/MM/yyyy' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="checkinDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Check-In</th>
+                <td mat-cell *matCellDef="let row">{{ row.checkinDate | date:'dd/MM/yyyy' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+              </ng-container>
+              <ng-container matColumnDef="grossAmount">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Gross (€)</th>
+                <td mat-cell *matCellDef="let row">{{ row.grossAmount }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="searchResultColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: searchResultColumns;"
+                  class="clickable-row"
+                  (click)="selectRental(row)"></tr>
+            </table>
+
+            <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-step>
+
+    <!-- Step 2: Pricing -->
+    <mat-step label="Pricing" [completed]="rentalLoaded">
+      <mat-card class="form-container">
+        <mat-card-header><h3>Dates</h3></mat-card-header>
+        <mat-card-content>
+          <mat-divider></mat-divider><br />
+          <div class="grid-fields">
+            <mat-form-field appearance="outline" class="readonly-field">
+              <mat-label>Check Out Date</mat-label>
+              <input matInput [matDatepicker]="checkoutDatePicker" [formControl]="checkoutDateControl" (dateChange)="updateActualCheckOut()" />
+              <mat-datepicker-toggle matSuffix [for]="checkoutDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #checkoutDatePicker [touchUi]="true"></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="readonly-field">
+              <mat-label>Check Out Time</mat-label>
+              <input matInput type="time" [formControl]="checkoutTimeControl" (change)="updateActualCheckOut()" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="readonly-field">
+              <mat-label>Check In Date</mat-label>
+              <input matInput [matDatepicker]="checkInDatePicker" [formControl]="checkinDateControl" (dateChange)="updateActualCheckIn()" />
+              <mat-datepicker-toggle matSuffix [for]="checkInDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #checkInDatePicker [touchUi]="true"></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="readonly-field">
+              <mat-label>Check In Time</mat-label>
+              <input matInput type="time" [formControl]="checkinTimeControl" (change)="updateActualCheckIn()" />
+            </mat-form-field>
+          </div>
+
+          <h3 class="title">Pricing</h3>
+          <mat-divider></mat-divider><br />
+
+          <form [formGroup]="pricingFormGroup" (keydown.enter)="focusNext($event)">
+            <div class="grid-fields">
+              <mat-form-field appearance="outline" class="readonly-field">
+                <mat-label>Car Group</mat-label>
+                <mat-select formControlName="carGroup">
+                  <mat-option *ngFor="let carGroupFee of carGroupFeesOnly" [value]="carGroupFee.feeName">
+                    {{ formatFeeName(carGroupFee.feeName) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field *ngIf="noVehiclesForGroup" appearance="outline" class="readonly-field no-vehicles-field">
+                <input matInput value="No cars available for this car group" disabled />
+              </mat-form-field>
+            </div>
+
+            <div class="button-group">
+              <button mat-raised-button color="primary" class="buttons" type="button" [disabled]="!canCalculate" (click)="calculatePrice()">
                 Calculate Price
               </button>
-              <button
-                mat-raised-button
-                type="button"
-                class="buttons"
-                (click)="toggleAdditionalFees()"
-              >
+              <button mat-raised-button type="button" class="buttons" (click)="toggleAdditionalFees()">
                 Add Additional Fees
               </button>
-              <button
-                mat-raised-button
-                type="button"
-                class="buttons"
-                (click)="toggleDiscount()"
-              >
+              <button mat-raised-button type="button" class="buttons" (click)="toggleDiscount()">
                 Add Discount
               </button>
             </div>
@@ -289,53 +194,17 @@
               <mat-divider></mat-divider><br />
               <mat-card-content>
                 <div formArrayName="additionalFees">
-                  <div
-                    *ngFor="let fee of additionalFees.controls; let i = index"
-                    [formGroupName]="i"
-                    class="fee-row"
-                  >
-                    <mat-form-field appearance="outline" class="gray-bg">
+                  <div *ngFor="let fee of additionalFees.controls; let i = index" [formGroupName]="i" class="fee-row">
+                    <mat-form-field appearance="outline" class="readonly-field">
                       <mat-label>Additional Fee</mat-label>
-                      <mat-select formControlName="feeType">
-                        <mat-option value="Additional Drivers"
-                          >Additional Drivers (€50)</mat-option
-                        >
-                        <mat-option value="Child Seat"
-                          >Child Seat (€30)</mat-option
-                        >
-                        <mat-option value="Cross Borders"
-                          >Cross Borders (€40)</mat-option
-                        >
-                        <mat-option value="Booster Seat"
-                          >Booster Seat (€25)</mat-option
-                        >
-                        <mat-option value="Insurance Lv.1"
-                          >Insurance Lv.1 (€60)</mat-option
-                        >
-                        <mat-option value="Insurance Lv.2"
-                          >Insurance Lv.2 (€100)</mat-option
-                        >
-                        <mat-option value="KMFee">Additional KM fee</mat-option>
-
-                        <mat-option value="AirportChange"
-                          >Airport Change Fee (€20)</mat-option
-                        >
-                        <mat-option value="youngDriver"
-                          >Young Driver</mat-option
-                        >
-                        <mat-option value="upgrade">Upsell/Upgrade</mat-option>
-
-                        <mat-option value="latePickup">Late Pickup</mat-option>
-
-                        <mat-option value="winterTire">Winter Tire</mat-option>
-
-                        <mat-option value="noshowFee">No Show Fee</mat-option>
+                      <mat-select formControlName="feeType" (selectionChange)="onFeeTypeChange($event.value, i)">
+                        <mat-option *ngFor="let additionalFee of additionalFeesOnly" [value]="additionalFee.feeName">
+                          {{ formatFeeName(additionalFee.feeName) }}
+                        </mat-option>
                       </mat-select>
                     </mat-form-field>
-                    <mat-form-field
-                      *ngIf="fee.get('feeType')?.value === 'AirportChange'"
-                      appearance="outline"
-                    >
+
+                    <mat-form-field *ngIf="fee.get('feeType')?.value === 'AirportChange'" appearance="outline">
                       <mat-label>Which Airport</mat-label>
                       <mat-select formControlName="airportName">
                         <mat-option value="Baden-Baden">Baden-Baden</mat-option>
@@ -343,47 +212,27 @@
                       </mat-select>
                     </mat-form-field>
 
-                    <mat-form-field
-                      *ngIf="fee.get('feeType')?.value === 'KMFee'"
-                      appearance="outline"
-                    >
+                    <mat-form-field *ngIf="fee.get('feeType')?.value === 'KMFee'" appearance="outline">
                       <mat-label>Nr of KM</mat-label>
-                      <input
-                        matInput
-                        type="number"
-                        formControlName="kmCount"
-                        placeholder="e.g. 100"
-                      />
+                      <input matInput type="number" formControlName="kmCount" placeholder="e.g. 100" />
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline" class="gray-bg">
+                    <mat-form-field appearance="outline" class="readonly-field">
                       <mat-label>Price (€)</mat-label>
                       <input matInput formControlName="price" />
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline" class="gray-bg">
+                    <mat-form-field appearance="outline" class="readonly-field">
                       <mat-label>Max Price (€)</mat-label>
-                      <input
-                        matInput
-                        type="number"
-                        formControlName="maxPrice"
-                      />
+                      <input matInput formControlName="maxAmount" />
                     </mat-form-field>
 
-                    <button
-                      mat-icon-button
-                      color="warn"
-                      (click)="removeAdditionalFee(i)"
-                    >
+                    <button mat-icon-button color="warn" (click)="removeAdditionalFee(i)">
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
 
-                  <button
-                    mat-mini-fab
-                    color="primary"
-                    (click)="addAdditionalFee()"
-                  >
+                  <button mat-mini-fab color="primary" (click)="addAdditionalFee()">
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
@@ -399,16 +248,16 @@
                     <mat-label>Discount (%)</mat-label>
                     <input matInput formControlName="discountPercentage" />
                   </mat-form-field>
-                  <mat-form-field appearance="outline" class="gray-bg">
+                  <mat-form-field appearance="outline" class="readonly-field">
                     <mat-label>Reason</mat-label>
                     <input matInput formControlName="discountReason" />
                   </mat-form-field>
-                  <mat-form-field appearance="outline" class="gray-bg">
+                  <mat-form-field appearance="outline" class="readonly-field">
                     <mat-label>Applied By</mat-label>
                     <mat-select formControlName="discountAppliedBy">
-                      <mat-option>Employee 1</mat-option>
-                      <mat-option>Employee 2</mat-option>
-                      <mat-option>Employee 3</mat-option>
+                      <mat-option value="Employee 1">Employee 1</mat-option>
+                      <mat-option value="Employee 2">Employee 2</mat-option>
+                      <mat-option value="Employee 3">Employee 3</mat-option>
                     </mat-select>
                   </mat-form-field>
                 </div>
@@ -424,110 +273,76 @@
               </mat-form-field>
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Net Amount (€)</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  placeholder="Auto-calculated"
-                  formControlName="netAmount"
-                />
+                <input matInput type="number" placeholder="Auto-calculated" formControlName="netAmount" />
               </mat-form-field>
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Gross Amount (€)</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  placeholder="Auto-calculated"
-                  formControlName="grossAmount"
-                />
+                <input matInput type="number" placeholder="Auto-calculated" formControlName="grossAmount" />
               </mat-form-field>
             </div>
           </form>
 
           <div class="buttons-group" style="margin-top: 30px">
+            <button mat-button matStepperPrevious>Back</button>
             <button mat-button matStepperNext>Next</button>
           </div>
         </mat-card-content>
       </mat-card>
     </mat-step>
 
+    <!-- Step 3: Customer Information -->
     <mat-step label="Customer Information">
       <mat-card class="form-container">
-        <mat-card-header>
-          <h3 class="title">Customer Information</h3>
-        </mat-card-header>
-
+        <mat-card-header><h3 class="title">Customer Information</h3></mat-card-header>
         <mat-card-content>
           <form [formGroup]="customerFormGroup">
+
             <h4>Customer Details</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Academic Title</mat-label>
                 <input matInput formControlName="academicTitle" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>First Name</mat-label>
                 <input matInput formControlName="firstName" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Last Name</mat-label>
                 <input matInput formControlName="lastName" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Date of Birth</mat-label>
-                <input
-                  matInput
-                  [matDatepicker]="dobPicker"
-                  formControlName="dob"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="dobPicker"
-                ></mat-datepicker-toggle>
+                <input matInput [matDatepicker]="dobPicker" formControlName="dob" />
+                <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
                 <mat-datepicker #dobPicker></mat-datepicker>
               </mat-form-field>
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Age</mat-label>
-                <input
-                  matInput
-                  [value]="calculateAge(customerFormGroup.get('dob')?.value)"
-                  disabled
-                />
-                <button
-                  mat-icon-button
-                  matSuffix
-                  *ngIf="showYoungDriverNotice()"
-                  matTooltip="Young Driver (18–21)"
-                >
+                <input matInput [value]="calculateAge(customerFormGroup.get('dob')?.value)" disabled />
+                <button mat-icon-button matSuffix *ngIf="showYoungDriverNotice()" matTooltip="Young Driver (18-21)">
                   <mat-icon color="accent">info</mat-icon>
                 </button>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Phone nr.</mat-label>
                 <input matInput formControlName="phone" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field wide-field">
                 <mat-label>Email</mat-label>
                 <input matInput type="email" formControlName="email" />
+                <mat-error *ngIf="customerFormGroup.get('email')?.hasError('email')">
+                  Please enter a valid email address
+                </mat-error>
               </mat-form-field>
             </div>
 
             <h4>Driver Information</h4>
             <mat-divider></mat-divider><br />
             <div>
-              <p class="colorwhite">
-                Is the driver the same person as the renter?
-              </p>
-
-              <mat-radio-group
-                formControlName="driverSameAsRenter"
-                class="radio-group"
-              >
+              <p class="colorwhite">Is the driver the same person as the renter?</p>
+              <mat-radio-group formControlName="driverSameAsRenter" class="radio-group">
                 <mat-radio-button value="yes">Yes</mat-radio-button>
                 <mat-radio-button value="no">No</mat-radio-button>
               </mat-radio-group>
@@ -536,124 +351,93 @@
             <h4>Address</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>Address</mat-label>
+              <mat-form-field appearance="outline" class="readonly-field">
+                <mat-label>Street + House Nr.</mat-label>
                 <input matInput formControlName="addressline1" />
               </mat-form-field>
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Address 2</mat-label>
                 <input matInput formControlName="addressline2" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Postal Code</mat-label>
                 <input matInput formControlName="postalCode" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>City</mat-label>
-                <input matInput formControlName="city" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Country</mat-label>
                 <mat-select formControlName="country">
-                  <mat-option>Country 1</mat-option>
-                  <mat-option>Country 2</mat-option>
+                  <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
                 </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="readonly-field">
+                <mat-label>City</mat-label>
+                <input matInput formControlName="city" />
               </mat-form-field>
             </div>
 
             <h4>Billing Address</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <p class="colorwhite">
-                Is your billing address the same as your home address?
-              </p>
-              <mat-radio-group
-                formControlName="sameBillingAddress"
-                class="radio-group"
-              >
+              <p class="colorwhite">Is your billing address the same as your home address?</p>
+              <mat-radio-group formControlName="sameBillingAddress" class="radio-group">
                 <mat-radio-button value="yes">Yes</mat-radio-button>
                 <mat-radio-button value="no">No</mat-radio-button>
               </mat-radio-group>
             </div>
-            <div
-              class="grid-fields"
-              *ngIf="
-                customerFormGroup.get('sameBillingAddress')?.value === 'no'
-              "
-            >
-              <mat-form-field appearance="outline" class="gray-bg">
+            <div class="grid-fields" *ngIf="customerFormGroup.get('sameBillingAddress')?.value === 'no'">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Company Name</mat-label>
-                <input matInput formControlName="companyName" />
+                <input matInput formControlName="billingCompanyName" />
               </mat-form-field>
-              <mat-form-field appearance="outline" class="gray-bg">
-                <mat-label>Street</mat-label>
-                <input matInput formControlName="street" />
+              <mat-form-field appearance="outline" class="readonly-field">
+                <mat-label>Street + House Nr.</mat-label>
+                <input matInput formControlName="billingAddressline1" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Postal Code</mat-label>
-                <input matInput formControlName="postalCode" />
+                <input matInput formControlName="billingPostalCode" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Country</mat-label>
-                <mat-select formControlName="country">
-                  <mat-option>Country 1</mat-option>
-                  <mat-option>Country 2</mat-option>
+                <mat-select formControlName="billingCountry">
+                  <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
                 </mat-select>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>City</mat-label>
-                <input matInput formControlName="city" />
+                <input matInput formControlName="billingCity" />
               </mat-form-field>
             </div>
 
             <h4>Identification Information</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Identification Type</mat-label>
-                <mat-select>
-                  <mat-option>ID Type 1</mat-option>
-                  <mat-option>ID Type 2</mat-option>
+                <mat-select formControlName="idType">
+                  <mat-option value="Passport">Passport</mat-option>
+                  <mat-option value="ID Card">ID Card</mat-option>
                 </mat-select>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Identification nr.</mat-label>
                 <input matInput formControlName="idNumber" />
               </mat-form-field>
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>ID Expiry Date</mat-label>
-                <input
-                  matInput
-                  [matDatepicker]="idExpiryPicker"
-                  formControlName="idExpiry"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="idExpiryPicker"
-                ></mat-datepicker-toggle>
+                <input matInput [matDatepicker]="idExpiryPicker" formControlName="idExpiry" />
+                <mat-datepicker-toggle matSuffix [for]="idExpiryPicker"></mat-datepicker-toggle>
                 <mat-datepicker #idExpiryPicker></mat-datepicker>
                 <mat-icon *ngIf="isIdExpired()" color="warn">warning</mat-icon>
               </mat-form-field>
-
               <div class="upload-container">
                 <app-upload-options *ngIf="isMobile"></app-upload-options>
                 <div *ngIf="!isMobile">
-                  <button mat-icon-button (click)="fileInput.click()">
+                  <button mat-icon-button (click)="fileInput_customer_id.click()">
                     <mat-icon>cloud_upload</mat-icon>
                   </button>
-                  <input
-                    hidden
-                    type="file"
-                    #fileInput
-                    (change)="onFileSelected($event)"
-                  />
+                  <input hidden type="file" #fileInput_customer_id (change)="onFileSelected($event, 'customer-id')" />
+                  <span *ngIf="fileMap['customer-id']" class="file-name" style="color: #1976d2; font-weight: 500;">{{ fileMap['customer-id'].name }}</span>
                 </div>
               </div>
             </div>
@@ -661,69 +445,41 @@
             <h4>License Information</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Driver's License nr.</mat-label>
                 <input matInput formControlName="licenseNumber" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Country</mat-label>
                 <input matInput formControlName="licenseCountry" />
               </mat-form-field>
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>License Issued Date</mat-label>
-                <input
-                  matInput
-                  [matDatepicker]="licenseIssuedPicker"
-                  formControlName="licenseIssued"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="licenseIssuedPicker"
-                ></mat-datepicker-toggle>
+                <input matInput [matDatepicker]="licenseIssuedPicker" formControlName="licenseIssued" />
+                <mat-datepicker-toggle matSuffix [for]="licenseIssuedPicker"></mat-datepicker-toggle>
                 <mat-datepicker #licenseIssuedPicker></mat-datepicker>
-                <mat-icon *ngIf="isLicenseRecent() === 'warning'" color="warn"
-                  >warning</mat-icon
-                >
-                <mat-icon *ngIf="isLicenseRecent() === 'ok'" color="primary"
-                  >check_circle</mat-icon
-                >
+                <mat-icon *ngIf="isLicenseRecent() === 'warning'" color="warn">warning</mat-icon>
+                <mat-icon *ngIf="isLicenseRecent() === 'ok'" color="primary">check_circle</mat-icon>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Date of Expiry</mat-label>
-                <input
-                  matInput
-                  [matDatepicker]="expiryPicker"
-                  formControlName="licenseExpiry"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="expiryPicker"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #expiryPicker></mat-datepicker>
+                <input matInput [matDatepicker]="licenseExpiryPicker" formControlName="licenseExpiry" />
+                <mat-datepicker-toggle matSuffix [for]="licenseExpiryPicker"></mat-datepicker-toggle>
+                <mat-datepicker #licenseExpiryPicker></mat-datepicker>
               </mat-form-field>
-
               <div class="upload-container">
                 <app-upload-options *ngIf="isMobile"></app-upload-options>
                 <div *ngIf="!isMobile">
-                  <button mat-icon-button (click)="fileInput.click()">
+                  <button mat-icon-button (click)="fileInput_driver_license.click()">
                     <mat-icon>cloud_upload</mat-icon>
                   </button>
-                  <input
-                    hidden
-                    type="file"
-                    #fileInput
-                    (change)="onFileSelected($event)"
-                  />
+                  <input hidden type="file" #fileInput_driver_license (change)="onFileSelected($event, 'driver-license')" />
+                  <span *ngIf="fileMap['driver-license']" class="file-name" style="color: #1976d2; font-weight: 500;">{{ fileMap['driver-license'].name }}</span>
                 </div>
               </div>
             </div>
 
-            <mat-form-field
-              appearance="outline"
-              style="width: 100%; margin-top: 15px"
-            >
+            <mat-form-field appearance="outline" style="width: 100%; margin-top: 15px">
               <mat-label>Internal Note</mat-label>
               <input matInput formControlName="customerNote" />
             </mat-form-field>
@@ -737,74 +493,67 @@
       </mat-card>
     </mat-step>
 
+    <!-- Step 4: Driver (conditional) -->
     <ng-container *ngIf="driverStepVisible">
       <mat-step label="Driver">
         <mat-card class="form-container">
-          <mat-card-header>
-            <h3 class="title">Driver</h3>
-          </mat-card-header>
+          <mat-card-header><h3 class="title">Driver</h3></mat-card-header>
           <mat-card-content>
             <form [formGroup]="driverFormGroup">
               <h4 class="title">Driver Information</h4>
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Academic Title</mat-label
-                  ><input matInput formControlName="academicTitle"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>First Name</mat-label
-                  ><input matInput formControlName="firstName"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Last Name</mat-label
-                  ><input matInput formControlName="lastName"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Date of Birth</mat-label
-                  ><input
-                    matInput
-                    [matDatepicker]="driverDob"
-                    formControlName="dob" /><mat-datepicker-toggle
-                    matSuffix
-                    [for]="driverDob"
-                  ></mat-datepicker-toggle
-                  ><mat-datepicker #driverDob></mat-datepicker
-                ></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Phone nr.</mat-label
-                  ><input matInput formControlName="phone"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Email</mat-label
-                  ><input matInput formControlName="email"
-                /></mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Academic Title</mat-label>
+                  <input matInput formControlName="academicTitle" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>First Name</mat-label>
+                  <input matInput formControlName="firstName" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Last Name</mat-label>
+                  <input matInput formControlName="lastName" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Date of Birth</mat-label>
+                  <input matInput [matDatepicker]="driverDob" formControlName="dob" />
+                  <mat-datepicker-toggle matSuffix [for]="driverDob"></mat-datepicker-toggle>
+                  <mat-datepicker #driverDob></mat-datepicker>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Phone nr.</mat-label>
+                  <input matInput formControlName="phone" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" />
+                </mat-form-field>
               </div>
               <h4>Address</h4>
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Address 1</mat-label
-                  ><input matInput formControlName="addressline1"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Address 2</mat-label
-                  ><input matInput formControlName="addressline2"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Postal Code</mat-label
-                  ><input matInput formControlName="postalCode"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>City</mat-label
-                  ><input matInput formControlName="city"
-                /></mat-form-field>
-                <mat-form-field appearance="outline" class="gray-bg"
-                  ><mat-label>Country</mat-label
-                  ><input matInput formControlName="country"
-                /></mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Street + House Nr.</mat-label>
+                  <input matInput formControlName="addressline1" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Address 2</mat-label>
+                  <input matInput formControlName="addressline2" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Postal Code</mat-label>
+                  <input matInput formControlName="postalCode" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Country</mat-label>
+                  <input matInput formControlName="country" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>City</mat-label>
+                  <input matInput formControlName="city" />
+                </mat-form-field>
               </div>
-
               <div class="buttons-group">
                 <button mat-button matStepperPrevious>Back</button>
                 <button mat-button matStepperNext>Next</button>
@@ -815,94 +564,66 @@
       </mat-step>
     </ng-container>
 
+    <!-- Step 5: Additional Drivers (dynamic) -->
     <ng-container *ngFor="let form of additionalDriverForms; let i = index">
       <mat-step [label]="'Additional Driver ' + (i + 1)">
         <mat-card class="form-container">
-          <mat-card-header>
-            <h3 class="title">Additional Driver {{ i + 1 }}</h3>
-          </mat-card-header>
-
+          <mat-card-header><h3 class="title">Additional Driver {{ i + 1 }}</h3></mat-card-header>
           <mat-card-content>
             <form [formGroup]="form">
               <h4>Driver Details</h4>
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Academic Title</mat-label>
                   <input matInput formControlName="academicTitle" />
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>First Name</mat-label>
                   <input matInput formControlName="firstName" />
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Last Name</mat-label>
                   <input matInput formControlName="lastName" />
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Date of Birth</mat-label>
-                  <input
-                    matInput
-                    [matDatepicker]="dobPicker"
-                    formControlName="dob"
-                  />
-                  <mat-datepicker-toggle
-                    matSuffix
-                    [for]="dobPicker"
-                  ></mat-datepicker-toggle>
-                  <mat-datepicker #dobPicker></mat-datepicker>
+                  <input matInput [matDatepicker]="adDobPicker" formControlName="dob" />
+                  <mat-datepicker-toggle matSuffix [for]="adDobPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #adDobPicker></mat-datepicker>
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Phone nr.</mat-label>
                   <input matInput formControlName="phone" />
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Age</mat-label>
-                  <input
-                    matInput
-                    [value]="
-                      calculateAge(
-                        customerFormGroup.get('driverDetails.dob')?.value
-                      )
-                    "
-                    disabled
-                  />
+                  <input matInput [value]="calculateAge(form.get('dob')?.value)" disabled />
                 </mat-form-field>
               </div>
 
               <h4>Identification Information</h4>
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Identification Type</mat-label>
                   <mat-select formControlName="idType">
-                    <mat-option>ID Type 1</mat-option>
-                    <mat-option>ID Type 2</mat-option>
+                    <mat-option value="Passport">Passport</mat-option>
+                    <mat-option value="ID Card">ID Card</mat-option>
                   </mat-select>
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Identification nr.</mat-label>
                   <input matInput formControlName="idNumber" />
                 </mat-form-field>
-
                 <div class="upload-container">
                   <app-upload-options *ngIf="isMobile"></app-upload-options>
                   <div *ngIf="!isMobile">
-                    <button mat-icon-button (click)="fileInput.click()">
+                    <button mat-icon-button (click)="fileInputAdId.click()">
                       <mat-icon>cloud_upload</mat-icon>
                     </button>
-                    <input
-                      hidden
-                      type="file"
-                      #fileInput
-                      (change)="onFileSelected($event)"
-                    />
+                    <input hidden type="file" #fileInputAdId (change)="onFileSelected($event, 'additional-driver-' + (i + 1) + '-id')" />
+                    <span *ngIf="fileMap['additional-driver-' + (i + 1) + '-id']" class="file-name" style="color: #1976d2; font-weight: 500;">{{ fileMap['additional-driver-' + (i + 1) + '-id'].name }}</span>
                   </div>
                 </div>
               </div>
@@ -910,42 +631,28 @@
               <h4>License Information</h4>
               <mat-divider></mat-divider><br />
               <div class="grid-fields">
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Driver's License nr.</mat-label>
                   <input matInput formControlName="licenseNumber" />
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Country</mat-label>
                   <input matInput formControlName="licenseCountry" />
                 </mat-form-field>
-
-                <mat-form-field appearance="outline" class="gray-bg">
+                <mat-form-field appearance="outline" class="readonly-field">
                   <mat-label>Date of Expiry</mat-label>
-                  <input
-                    matInput
-                    [matDatepicker]="expiryPicker"
-                    formControlName="licenseExpiry"
-                  />
-                  <mat-datepicker-toggle
-                    matSuffix
-                    [for]="expiryPicker"
-                  ></mat-datepicker-toggle>
-                  <mat-datepicker #expiryPicker></mat-datepicker>
+                  <input matInput [matDatepicker]="adExpiryPicker" formControlName="licenseExpiry" />
+                  <mat-datepicker-toggle matSuffix [for]="adExpiryPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #adExpiryPicker></mat-datepicker>
                 </mat-form-field>
-
                 <div class="upload-container">
                   <app-upload-options *ngIf="isMobile"></app-upload-options>
                   <div *ngIf="!isMobile">
-                    <button mat-icon-button (click)="fileInput.click()">
+                    <button mat-icon-button (click)="fileInputAdLicense.click()">
                       <mat-icon>cloud_upload</mat-icon>
                     </button>
-                    <input
-                      hidden
-                      type="file"
-                      #fileInput
-                      (change)="onFileSelected($event)"
-                    />
+                    <input hidden type="file" #fileInputAdLicense (change)="onFileSelected($event, 'additional-driver-' + (i + 1) + '-license')" />
+                    <span *ngIf="fileMap['additional-driver-' + (i + 1) + '-license']" class="file-name" style="color: #1976d2; font-weight: 500;">{{ fileMap['additional-driver-' + (i + 1) + '-license'].name }}</span>
                   </div>
                 </div>
               </div>
@@ -959,66 +666,58 @@
         </mat-card>
       </mat-step>
     </ng-container>
-    <!--put stepper with errors in the steps when conn with backnd-->
-    <mat-step label="Car Information" state="phone">
-      <mat-card class="form-container">
-        <mat-card-header>
-          <h3 class="title">Car Information</h3>
-        </mat-card-header>
 
+    <!-- Step 6: Car Information -->
+    <mat-step label="Car Information">
+      <mat-card class="form-container">
+        <mat-card-header><h3 class="title">Car Information</h3></mat-card-header>
         <mat-card-content>
           <form [formGroup]="carInformationFormGroup">
             <mat-divider></mat-divider><br />
-
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>MVA</mat-label>
-                <input matInput formControlName="mva" placeholder="Enter MVA" />
+                <mat-select formControlName="mva">
+                  <mat-option *ngFor="let vehicle of vehicles" [value]="vehicle.mva">
+                    {{ vehicle.mva }} - {{ vehicle.licensePlate }} - {{ vehicle.model }}
+                  </mat-option>
+                </mat-select>
               </mat-form-field>
             </div>
-
             <div class="grid-fields">
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Car Group</mat-label>
                 <input matInput formControlName="carGroup" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>License Plate</mat-label>
                 <input matInput formControlName="licensePlate" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Fuel</mat-label>
                 <input matInput formControlName="fuel" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Car Model</mat-label>
                 <input matInput formControlName="carModel" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
-                <mat-label>Millage</mat-label>
-                <input matInput formControlName="millage" />
+                <mat-label>Mileage</mat-label>
+                <input matInput formControlName="mileage" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Color</mat-label>
                 <input matInput formControlName="color" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Status</mat-label>
                 <input matInput formControlName="status" />
               </mat-form-field>
-
               <mat-form-field class="gray-bg" appearance="fill">
                 <mat-label>Transmission</mat-label>
                 <input matInput formControlName="transmission" />
               </mat-form-field>
             </div>
-
             <div class="buttons-group">
               <button mat-button matStepperPrevious>Back</button>
               <button mat-button matStepperNext>Next</button>
@@ -1028,55 +727,39 @@
       </mat-card>
     </mat-step>
 
-    <mat-step label="Payment" state="phone">
+    <!-- Step 7: Payment -->
+    <mat-step label="Payment">
       <mat-card class="form-container">
-        <mat-card-header>
-          <h3 class="title">Payment</h3>
-        </mat-card-header>
-
+        <mat-card-header><h3 class="title">Payment</h3></mat-card-header>
         <mat-card-content>
           <form [formGroup]="paymentFormGroup">
             <h4>Card Information</h4>
             <mat-divider></mat-divider><br />
-
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Card Type</mat-label>
                 <input matInput formControlName="cardType" />
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Card Expiry Date</mat-label>
-                <input
-                  matInput
-                  [formControl]="expiryDateControl"
-                  [matDatepicker]="expPicker"
-                  (click)="expPicker.open()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="expPicker"
-                ></mat-datepicker-toggle>
-                <mat-datepicker
-                  #expPicker
-                  startView="multi-year"
-                  (monthSelected)="selectExpiryMonth($event, expPicker)"
-                  [startAt]="initialExpiryMoment"
-                  panelClass="example-month-picker"
-                  [touchUi]="true"
-                ></mat-datepicker>
+                <input matInput [formControl]="expiryDateControl" [matDatepicker]="expPicker" (click)="expPicker.open()" />
+                <mat-datepicker-toggle matSuffix [for]="expPicker"></mat-datepicker-toggle>
+                <mat-datepicker #expPicker startView="multi-year" (monthSelected)="selectExpiryMonth($event, expPicker)" [startAt]="initialExpiryMoment" panelClass="example-month-picker" [touchUi]="true"></mat-datepicker>
                 <mat-hint>MM/YYYY</mat-hint>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>CVV</mat-label>
-                <input matInput formControlName="cvv" />
+                <input matInput formControlName="cvv" maxlength="4" pattern="\d*" inputmode="numeric" />
+                <mat-error *ngIf="paymentFormGroup.get('cvv')?.hasError('maxlength') || paymentFormGroup.get('cvv')?.hasError('pattern')">
+                  CVV must be up to 4 digits
+                </mat-error>
               </mat-form-field>
             </div>
+
             <h4>Payment Amount</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Amount on Hold</mat-label>
                 <input matInput formControlName="amountOnHold" />
               </mat-form-field>
@@ -1085,24 +768,17 @@
                 <input matInput formControlName="checkoutGrossAmount" />
               </mat-form-field>
             </div>
+
             <h4>More Information</h4>
             <mat-divider></mat-divider><br />
             <div class="grid-fields">
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Payment Date</mat-label>
-                <input
-                  matInput
-                  [matDatepicker]="paymentDatePicker"
-                  formControlName="paymentDate"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="paymentDatePicker"
-                ></mat-datepicker-toggle>
+                <input matInput [matDatepicker]="paymentDatePicker" formControlName="paymentDate" />
+                <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
                 <mat-datepicker #paymentDatePicker></mat-datepicker>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Payment Status</mat-label>
                 <mat-select formControlName="paymentStatus">
                   <mat-option value="Paid">Paid</mat-option>
@@ -1112,42 +788,189 @@
                   <mat-option value="On Hold">On Hold</mat-option>
                 </mat-select>
               </mat-form-field>
-
-              <mat-form-field appearance="outline" class="gray-bg">
+              <mat-form-field appearance="outline" class="readonly-field">
                 <mat-label>Authorization Code</mat-label>
                 <input matInput formControlName="authorizationCode" />
               </mat-form-field>
             </div>
 
             <div class="buttons-gr">
-              <button mat-raised-button color="primary" (click)="save()">
-                Save & Print
+              <button mat-raised-button color="primary" class="buttons" (click)="save()">
+                Save & Update
               </button>
             </div>
 
             <div class="buttons-group">
               <button mat-button matStepperPrevious>Back</button>
             </div>
-            <div class="buttons-group" style="margin-top: 20px"></div>
           </form>
         </mat-card-content>
       </mat-card>
     </mat-step>
+
+    <!-- Step 8: Exchange Vehicle (only when rental loaded) -->
+    <ng-container *ngIf="rentalLoaded">
+      <mat-step label="Exchange Vehicle">
+        <mat-card class="form-container">
+          <mat-card-header><h3 class="title">Exchange Vehicle</h3></mat-card-header>
+          <mat-card-content>
+            <mat-divider></mat-divider><br />
+
+            <p class="colorwhite">Did the car leave the lot?</p>
+            <mat-radio-group (change)="setCarLeftLot($event.value)">
+              <mat-radio-button value="no">No</mat-radio-button>
+              <mat-radio-button value="yes">Yes</mat-radio-button>
+            </mat-radio-group>
+
+            <h4 style="margin-top: 20px">Current Car</h4>
+            <div class="grid-fields" [formGroup]="currentCarForm">
+              <mat-form-field appearance="outline">
+                <mat-label>MVA</mat-label>
+                <input matInput formControlName="mva" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Plate</mat-label>
+                <input matInput formControlName="plate" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Model</mat-label>
+                <input matInput formControlName="model" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <input matInput formControlName="status" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Mileage</mat-label>
+                <input matInput formControlName="mileage" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Check Out</mat-label>
+                <input matInput formControlName="checkOut" />
+              </mat-form-field>
+            </div>
+
+            <!-- Inspection Details (if car left lot) -->
+            <div *ngIf="carLeftLot === 'yes'" style="margin-top: 20px">
+              <h4>Inspection Details</h4>
+              <div class="grid-fields" [formGroup]="inspectionForm">
+                <mat-form-field appearance="outline">
+                  <mat-label>KM In</mat-label>
+                  <input matInput formControlName="kmIn" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Purchase Fuel (€)</mat-label>
+                  <input matInput formControlName="purchaseFuel" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Fuel In (out of 8)</mat-label>
+                  <input matInput formControlName="fuelIn" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Adjustments (€)</mat-label>
+                  <input matInput formControlName="adjustments" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Damages</mat-label>
+                  <input matInput formControlName="damages" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Accident</mat-label>
+                  <input matInput formControlName="accident" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Other</mat-label>
+                  <input matInput formControlName="other" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Reason</mat-label>
+                  <input matInput formControlName="reason" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Amount (€)</mat-label>
+                  <input matInput formControlName="amount" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>One-Way</mat-label>
+                  <mat-select formControlName="oneWay">
+                    <mat-option value="yes">Yes</mat-option>
+                    <mat-option value="no">No</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Misc</mat-label>
+                  <input matInput formControlName="misc" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Misc Fee (€)</mat-label>
+                  <input matInput formControlName="miscFee" />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <h4 style="margin-top: 20px">New Car</h4>
+            <div class="grid-fields" [formGroup]="newCarForm">
+              <mat-form-field appearance="outline">
+                <mat-label>MVA</mat-label>
+                <input matInput formControlName="mva" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Year</mat-label>
+                <input matInput formControlName="year" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Model</mat-label>
+                <input matInput formControlName="model" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Color</mat-label>
+                <input matInput formControlName="color" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Mileage</mat-label>
+                <input matInput formControlName="mileage" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Fuel (out of 8)</mat-label>
+                <input matInput formControlName="fuel" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Plate</mat-label>
+                <input matInput formControlName="plate" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <input matInput formControlName="status" />
+              </mat-form-field>
+            </div>
+
+            <div class="buttons-group" style="margin-top: 20px">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" class="buttons" (click)="submitExchange()">
+                Confirm Exchange
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-step>
+    </ng-container>
+
   </mat-horizontal-stepper>
 
-  <mat-card class="summary">
+  <!-- Live Summary Sidebar -->
+  <mat-card class="summary" *ngIf="rentalLoaded">
     <mat-card-header>
       <mat-card-title>Live Summary</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <p><strong>Rental ID:</strong> 0000001</p>
-      <p><strong>First Name:</strong> John</p>
-      <p><strong>Last Name:</strong> Doe</p>
-      <p><strong>Check Out:</strong> 01/04/2024</p>
-      <p><strong>Check In:</strong> 10/04/2024</p>
-      <p><strong>Net Amount:</strong> €300</p>
-      <p><strong>Extras:</strong> €50</p>
-      <p><strong>Gross Amount:</strong> €350</p>
+      <p><strong>Rental ID:</strong> {{ loadedRentalId }}</p>
+      <p><strong>First Name:</strong> {{ customerFormGroup.get('firstName')?.value }}</p>
+      <p><strong>Last Name:</strong> {{ customerFormGroup.get('lastName')?.value }}</p>
+      <p><strong>Check Out:</strong> {{ checkoutDateControl.value | date:'dd/MM/yyyy' }}</p>
+      <p><strong>Check In:</strong> {{ checkinDateControl.value | date:'dd/MM/yyyy' }}</p>
+      <p><strong>Net Amount:</strong> €{{ pricingFormGroup.get('netAmount')?.value }}</p>
+      <p><strong>Extras:</strong> €{{ getExtrasTotal() }}</p>
+      <p><strong>Gross Amount:</strong> €{{ pricingFormGroup.get('grossAmount')?.value }}</p>
     </mat-card-content>
   </mat-card>
 </div>

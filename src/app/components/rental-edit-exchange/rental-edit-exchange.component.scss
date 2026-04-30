@@ -279,6 +279,37 @@ mat-icon {
   gap: 16px;
 }
 
+.search-results {
+  margin-top: 20px;
+}
+
+.results-table {
+  width: 100%;
+  background: transparent;
+  color: white;
+}
+
+.clickable-row {
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.results-table th {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.results-table td {
+  color: white;
+}
+
+::ng-deep .mat-mdc-paginator {
+  background: transparent;
+  color: white;
+}
+
 .form-container {
   margin-bottom: 20px;
   padding: 20px;

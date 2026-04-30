@@ -33,7 +33,6 @@ import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/
 import { FeeService, Fee } from '../_common/_service/fee.service';
 import { VehicleService, Vehicle } from '../_common/_service/vehicle.service';
 import {
-  CheckoutService,
   CheckoutPayload,
   CheckoutPricingRecord,
   CustomerRecord,
@@ -45,6 +44,7 @@ import {
   DiscountRecord,
   AdditionalFeeRecord
 } from '../_common/_service/checkout.service';
+import { RentalService } from '../_common/_service/rental.service';
 import { InvoiceService, VehicleInfo } from '../../services/invoice.service';
 import { COUNTRIES } from '../../shared/constants/countries';
 
@@ -150,7 +150,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private feeService: FeeService,
     private vehicleService: VehicleService,
-    private checkoutService: CheckoutService,
+    private rentalService: RentalService,
     private invoiceService: InvoiceService
   ) { }
 
@@ -705,7 +705,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.checkoutService.submitCheckout(payload).subscribe({
+    this.rentalService.createRental(payload).subscribe({
       next: (response) => {
         this.snackBar.open(response.message || 'Checkout saved successfully!', 'Close', {
           duration: 5000,
