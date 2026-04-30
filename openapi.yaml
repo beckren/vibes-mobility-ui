@@ -469,6 +469,7 @@ components:
       enum:
         - Car Group
         - Additional
+        - Insurance
     FeeIntervalEnum:
       type: string
       enum:

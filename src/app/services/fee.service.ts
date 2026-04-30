@@ -6,10 +6,11 @@ import { Observable } from 'rxjs';
 
 export interface FeeRecord {
   name: string;
-  category: 'Additional' | 'Car Group';
+  category: 'Additional' | 'Car Group' | 'Insurance';
   interval: 'Daily' | 'Weekly' | 'Weekend' | 'One Time';
   amount: number;
   capAmount: number;
+  isRequired: boolean;
 }
 
 

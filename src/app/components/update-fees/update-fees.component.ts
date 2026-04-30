@@ -89,6 +89,7 @@ export class UpdateFeesComponent implements OnInit {
       interval: fee.interval,
       amount: this.editValues.amount,
       capAmount: this.editValues.capAmount,
+      isRequired: fee.isRequired ?? false,
     };
 
     this.feeService.updateFee(payload).subscribe({

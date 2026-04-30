@@ -177,6 +177,23 @@
               </mat-form-field>
             </div>
 
+            <div *ngIf="insuranceFeesOnly.length > 0" class="grid-fields">
+              <ng-container *ngFor="let insFee of insuranceFeesOnly">
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Insurance (incl.)</mat-label>
+                  <input matInput [value]="formatFeeName(insFee.feeName)" disabled />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Amount (€)</mat-label>
+                  <input matInput [value]="insFee.amountAtCheckout" disabled />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="readonly-field">
+                  <mat-label>Max (€)</mat-label>
+                  <input matInput [value]="insFee.maxAmount" disabled />
+                </mat-form-field>
+              </ng-container>
+            </div>
+
             <div class="button-group">
               <button mat-raised-button color="primary" class="buttons" type="button" [disabled]="!canCalculate" (click)="calculatePrice()">
                 Calculate Price

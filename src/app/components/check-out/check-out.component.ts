@@ -144,6 +144,10 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     return (this.fees || []).filter(f => f.feeCategory === 'Car Group');
   }
 
+  get insuranceFeesOnly(): Fee[] {
+    return (this.fees || []).filter(f => f.feeCategory === 'Insurance');
+  }
+
   constructor(
     private fb: FormBuilder,
     private priceService: PriceService,

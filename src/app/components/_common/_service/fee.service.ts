@@ -6,7 +6,8 @@ import { environment } from '../../../../environments/environments';
 
 export enum FeeCategory {
   Additional = 'Additional',
-  CarGroup = 'Car Group'
+  CarGroup = 'Car Group',
+  Insurance = 'Insurance'
 }
 
 export interface Fee {
@@ -15,6 +16,7 @@ export interface Fee {
   amountCalculatedOnIntervals: string;
   amountAtCheckout: string;
   maxAmount: string;
+  isRequired: boolean;
 }
 
 @Injectable({

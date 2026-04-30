@@ -167,6 +167,10 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
     return (this.fees || []).filter(f => f.feeCategory === 'Car Group');
   }
 
+  get insuranceFeesOnly(): Fee[] {
+    return (this.fees || []).filter(f => f.feeCategory === 'Insurance');
+  }
+
   get additionalFees(): FormArray {
     return this.pricingFormGroup.get('additionalFees') as FormArray;
   }
