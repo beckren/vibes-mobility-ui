@@ -8,7 +8,7 @@
       <div class="column">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Car ID</mat-label>
-          <input matInput />
+          <input matInput formControlName="carId" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Registration Date</mat-label>
@@ -28,34 +28,34 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Transmission</mat-label>
-          <input matInput />
+          <input matInput formControlName="transmission" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Tire Type</mat-label>
-          <input matInput />
+          <input matInput formControlName="tireType" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Status</mat-label>
-          <input matInput />
+          <input matInput formControlName="status" />
         </mat-form-field>
       </div>
 
       <div class="column">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>MVA</mat-label>
-          <input matInput />
+          <input matInput formControlName="mva" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Year</mat-label>
-          <input matInput />
+          <input matInput formControlName="year" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Fuel</mat-label>
-          <input matInput />
+          <input matInput formControlName="fuel" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Tire Information</mat-label>
-          <input matInput />
+          <input matInput formControlName="tireInformation" />
         </mat-form-field>
           <mat-form-field appearance="outline" class="full-width">
           <mat-label>PM Milleage</mat-label>
@@ -67,19 +67,19 @@
       <div class="column">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Licence Plate</mat-label>
-          <input matInput />
+          <input matInput formControlName="licencePlate" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Brand</mat-label>
-          <input matInput />
+          <input matInput formControlName="brand" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Fuel Level</mat-label>
-          <input matInput />
+          <input matInput formControlName="fuelLevel" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Equipment</mat-label>
-          <input matInput />
+          <input matInput formControlName="equipment" />
         </mat-form-field>
               <mat-form-field appearance="outline" class="full-width">
           <mat-label>Turnback Date</mat-label>
@@ -101,19 +101,19 @@
       <div class="column">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Model</mat-label>
-          <input matInput />
+          <input matInput formControlName="model" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Color</mat-label>
-          <input matInput />
+          <input matInput formControlName="color" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Milleage</mat-label>
-          <input matInput />
+          <input matInput formControlName="millage" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>TUV Inspection</mat-label>
-          <input matInput />
+          <input matInput formControlName="tuvInspection" />
         </mat-form-field>
           <mat-form-field appearance="outline" class="full-width">
           <mat-label>Turnback Milleage</mat-label>
@@ -175,6 +175,7 @@
 </button>
 
 <div class="buttons-container">
-  <button mat-button style="color: white" (click)="cancelBtn()">Cancel</button>
-  <button mat-raised-button class="save-btn">Save</button>
+  <button *ngIf="!isEditing" mat-raised-button color="primary" (click)="enableEdit()">Edit</button>
+  <button *ngIf="isEditing" mat-button style="color: white" (click)="cancelEdit()">Cancel</button>
+  <button *ngIf="isEditing" mat-raised-button class="save-btn">Save</button>
 </div>

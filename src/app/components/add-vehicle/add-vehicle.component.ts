@@ -73,24 +73,24 @@ export class AddVehicleComponent {
   ) { }
   ngOnInit(): void {
     this.NewVehicleForm = this.fb.group({
-      carId: [{ value: 'ABC123', disabled: true }],
-      registrationDate: [new Date(), Validators.required],
-      turnbackdate: [new Date(), Validators.required],
-      transmission: ['Automatic'],
-      tireType: ['All‐season'],
-      status: ['Available'],
-      mva: ['XYZ987'],
-      year: ['2020'],
-      fuel: ['Gasoline'],
-      tireInformation: ['Michelin R-17'],
-      licencePlate: ['ABC-1234'],
-      brand: ['Toyota'],
-      fuelLevel: ['Full'],
-      equipment: ['Standard'],
-      model: ['Corolla'],
-      color: ['Blue'],
-      millage: ['15,000'],
-      tuvInspection: ['2024-05-10']
+      carId: [{ value: '', disabled: true }],
+      registrationDate: ['', Validators.required],
+      turnbackdate: ['', Validators.required],
+      transmission: [''],
+      tireType: [''],
+      status: [''],
+      mva: [''],
+      year: [''],
+      fuel: [''],
+      tireInformation: [''],
+      licencePlate: [''],
+      brand: [''],
+      fuelLevel: [''],
+      equipment: [''],
+      model: [''],
+      color: [''],
+      millage: [''],
+      tuvInspection: ['']
     });
   }
   addVehicle() {

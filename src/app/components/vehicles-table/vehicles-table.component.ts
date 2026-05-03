@@ -81,8 +81,8 @@ export class VehiclesTableComponent implements OnInit, AfterViewInit {
         const tableData: VehiclesTableItem[] = vehicles.map(v => ({
           carId: v.mva,
           plate: v.licensePlate,
-          brand: v.brand,
-          model: v.model,
+          brand: v.brand || '',
+          model: v.model || v.carModel || '',
           color: v.color,
           year: v.year || new Date().getFullYear(),
           carGroup: v.carGroup,

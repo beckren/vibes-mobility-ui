@@ -16,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DamageMarkerComponent } from '../damage-marker/damage-marker.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
+import { VehicleService } from '../_common/_service/vehicle.service';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -68,33 +68,76 @@ export class EditVehicleComponent implements OnInit {
   vehicle: Vehicle = {} as Vehicle;
   damageHistory: DamageHistoryItem[] = [];
   vehicleForm!: FormGroup;
+  isEditing = false;
 
 
-  constructor(private route: ActivatedRoute, private router: Router, private dialog: MatDialog, private fb: FormBuilder) { }
+  constructor(private route: ActivatedRoute, private router: Router, private dialog: MatDialog, private fb: FormBuilder, private vehicleService: VehicleService) { }
   displayedColumns = ['CarPart', 'Damage'];
 
 
   ngOnInit(): void {
     this.vehicleForm = this.fb.group({
-      carId: [{ value: 'ABC123', disabled: true }],
-      registrationDate: [new Date(), Validators.required],
-      turnbackdate: [new Date(), Validators.required],
-      transmission: ['Automatic'],
-      tireType: ['All‐season'],
-      status: ['Available'],
-      mva: ['XYZ987'],
-      year: ['2020'],
-      fuel: ['Gasoline'],
-      tireInformation: ['Michelin R-17'],
-      licencePlate: ['ABC-1234'],
-      brand: ['Toyota'],
-      fuelLevel: ['Full'],
-      equipment: ['Standard'],
-      model: ['Corolla'],
-      color: ['Blue'],
-      millage: ['15,000'],
-      tuvInspection: ['2024-05-10']
+      carId: [{ value: '', disabled: true }],
+      registrationDate: ['', Validators.required],
+      turnbackdate: ['', Validators.required],
+      transmission: [''],
+      tireType: [''],
+      status: [''],
+      mva: [''],
+      year: [''],
+      fuel: [''],
+      tireInformation: [''],
+      licencePlate: [''],
+      brand: [''],
+      fuelLevel: [''],
+      equipment: [''],
+      model: [''],
+      color: [''],
+      millage: [''],
+      tuvInspection: ['']
     });
+
+    const mva = this.route.snapshot.paramMap.get('id');
+    console.log('Edit vehicle - route param id:', mva);
+    if (mva) {
+      this.vehicleService.getVehicleByMva(mva).subscribe({
+        next: (response: any) => {
+          console.log('Vehicle loaded from API:', response);
+          const vehicle = response.data || response;
+          this.vehicleForm.patchValue({
+            carId: vehicle.mva,
+            mva: vehicle.mva,
+            transmission: vehicle.transmission,
+            status: vehicle.status,
+            year: vehicle.year,
+            fuel: vehicle.fuel,
+            licencePlate: vehicle.licensePlate,
+            brand: vehicle.brand || '',
+            model: vehicle.model || vehicle.carModel || '',
+            color: vehicle.color,
+            millage: vehicle.mileage
+          });
+        },
+        error: (err) => {
+          console.error('Failed to load vehicle', err);
+        }
+      });
+    } else {
+      console.warn('No MVA route param found');
+    }
+
+    this.vehicleForm.disable();
+  }
+
+  enableEdit() {
+    this.isEditing = true;
+    this.vehicleForm.enable();
+    this.vehicleForm.get('carId')?.disable();
+  }
+
+  cancelEdit() {
+    this.isEditing = false;
+    this.vehicleForm.disable();
   }
 
   cancelBtn() {

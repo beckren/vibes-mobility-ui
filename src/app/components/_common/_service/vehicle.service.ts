@@ -8,14 +8,14 @@ export interface Vehicle {
   carGroup: string;
   licensePlate: string;
   fuel: string;
-  brand: string;
-  model: string;
+  brand?: string;
+  model?: string;
+  carModel?: string;
   mileage: string;
   color: string;
   status: string;
   transmission: string;
   year?: number;
-  // Add other fields as needed
 }
 
 @Injectable({ providedIn: 'root' })
