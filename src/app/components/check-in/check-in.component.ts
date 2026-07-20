@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +11,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
 import { DamageMarkerComponent } from '../damage-marker/damage-marker.component';
+import { DamageDiagramDialogComponent } from '../damage-diagram-dialog/damage-diagram-dialog.component';
+import { DamageService, DamageRecord } from '../_common/_service/damage.service';
+import { CheckinService, CheckinFeeInput } from '../_common/_service/checkin.service';
+import { RentalService } from '../_common/_service/rental.service';
+import { VehicleService } from '../_common/_service/vehicle.service';
+import { ActivatedRoute } from '@angular/router';
 import { MatStepperModule } from '@angular/material/stepper';
 import {
   MatNativeDateModule,
@@ -71,12 +78,14 @@ const FULL_DATE_FORMATS = {
     MatDialogModule,
     NgxMaterialTimepickerModule,
     MatStepperModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTableModule
   ],
 })
 export class CheckInComponent implements OnInit {
   checkInForm!: FormGroup;
-  showAdditionalFees = false;
+  damages: DamageRecord[] = [];
+  damageColumns = ['part', 'direction', 'damageType', 'severity', 'state', 'reportedAt', 'markers'];
   actualCheckoutDateControl = new FormControl();
   actualCheckoutTimeControl = new FormControl();
 
@@ -91,31 +100,23 @@ export class CheckInComponent implements OnInit {
     extras: 0,
     grossAmount: 0,
   };
-  feeTypePriceMap: { [key: string]: number } = {
-    tax: 50,
-    cleaning: 30,
-    carTank: 40,
-    damage: 25,
-    aiport: 25,
-    delayed: 10,
-  };
   carInformationFormGroup!: FormGroup;
 
 
-  constructor(private fb: FormBuilder, private dialog: MatDialog, private snackBar: MatSnackBar) { }
+  constructor(private fb: FormBuilder, private dialog: MatDialog, private snackBar: MatSnackBar, private damageService: DamageService, private checkinService: CheckinService, private rentalService: RentalService, private vehicleService: VehicleService, private route: ActivatedRoute) { }
 
   ngOnInit() {
     this.checkInForm = this.fb.group({
       rentalNumber: [''],
       rentalnr: [''],
-      mva: [''],
+      mva: new FormControl({ value: '', disabled: true }),
       checkOutPrice: new FormControl({ value: '', disabled: true }),
       checkInPrice: [''],
 
       actualCheckOutDate: new FormControl({ value: null, disabled: true }),
       actualCheckOutTime: new FormControl({ value: null, disabled: true }),
-      expectedCheckInDate: [null],
-      expectedCheckInTime: [''],
+      expectedCheckInDate: new FormControl({ value: null, disabled: true }),
+      expectedCheckInTime: new FormControl({ value: '', disabled: true }),
       actualCheckInDate: [null],
       actualCheckInTime: [''],
       kmOut: new FormControl({ value: ' ', disabled: true }),
@@ -123,22 +124,17 @@ export class CheckInComponent implements OnInit {
       fuelOut: new FormControl({ value: '', disabled: true }),
       fuelIn: [''],
       netAmount: new FormControl({ value: '', disabled: true }),
-      tax: [''],
-      carTank: [''],
-      cleaning: [''],
-      damage: [''],
       grossAmount: new FormControl({ value: '', disabled: true }),
       mileageExtra: [''],
       amountOnHold: [''],
       paymentStatus: [''],
-      additionalFees: this.fb.array([]),
       fuelExtra: [''],
 
     });
 
     this.carInformationFormGroup = this.fb.group({
       rentalnr: [''],
-      mva: [''],
+      mva: new FormControl({ value: '', disabled: true }),
       carGroup: new FormControl({ value: '', disabled: true }),
       licensePlate: new FormControl({ value: '', disabled: true }),
       fuel: new FormControl({ value: '', disabled: true }),
@@ -151,11 +147,95 @@ export class CheckInComponent implements OnInit {
       customerlname: new FormControl({ value: '', disabled: true }),
     });
 
+    const rentalId = this.route.snapshot.paramMap.get('rentalId');
+    if (rentalId) {
+      this.carInformationFormGroup.get('rentalnr')?.disable();
+      this.checkInForm.get('rentalnr')?.disable();
+      this.loadRental(rentalId);
+    }
   }
 
-  get additionalFees(): FormArray {
-    return this.checkInForm.get('additionalFees') as FormArray;
+  // Loads the rental (incl. customer + pricing) and its vehicle into the
+  // check-in forms so the agreement number and context are not free-typed.
+  loadRental(rentalId: string) {
+    if (!rentalId) {
+      return;
+    }
+
+    this.rentalService.getRentalById(rentalId).subscribe({
+      next: (rental) => {
+        const person = rental.customerRecord?.personRecord;
+        const pricing = rental.checkoutPricingRecord;
+        const payment = rental.paymentRecord;
+
+        this.checkInForm.patchValue({
+          rentalnr: rental.rentalId,
+          rentalNumber: rental.rentalId,
+          mva: rental.mva,
+          actualCheckOutDate: pricing?.checkoutDate ? moment(pricing.checkoutDate) : null,
+          expectedCheckInDate: pricing?.expectedCheckinDate ? moment(pricing.expectedCheckinDate) : null,
+          kmOut: pricing?.kmOut ?? '',
+          fuelOut: pricing?.fuelOut ?? '',
+          checkOutPrice: pricing?.targetSalePrice ?? '',
+          netAmount: pricing?.targetSalePrice ?? '',
+          grossAmount: pricing?.grossListSalePrice ?? '',
+          amountOnHold: payment?.amountOnHold ?? '',
+          paymentStatus: payment?.paymentStatus ?? '',
+        });
+
+        this.carInformationFormGroup.patchValue({
+          rentalnr: rental.rentalId,
+          mva: rental.mva,
+          carGroup: pricing?.carGroupName ?? '',
+          customername: person?.firstName ?? '',
+          customerlname: person?.lastName ?? '',
+        });
+
+        if (rental.mva) {
+          this.loadVehicle(rental.mva);
+          this.loadDamages(rental.mva);
+        }
+      },
+      error: () => {
+        this.snackBar.open(`Rental '${rentalId}' could not be loaded.`, 'Close', {
+          duration: 5000, horizontalPosition: 'center', verticalPosition: 'top',
+          panelClass: ['snackbar-error']
+        });
+      }
+    });
   }
+
+  private loadVehicle(mva: string) {
+    this.vehicleService.getVehicleByMva(mva).subscribe({
+      next: (response: any) => {
+        const vehicle = response?.data || response;
+        this.carInformationFormGroup.patchValue({
+          carGroup: vehicle.carGroup,
+          licensePlate: vehicle.licensePlate,
+          fuel: vehicle.fuel,
+          carModel: vehicle.model || vehicle.carModel || '',
+          millage: vehicle.mileage,
+          color: vehicle.color,
+          status: vehicle.status,
+          transmission: vehicle.transmission,
+        });
+      },
+      error: () => {
+        this.snackBar.open(`Vehicle '${mva}' could not be loaded.`, 'Close', {
+          duration: 5000, horizontalPosition: 'center', verticalPosition: 'top',
+          panelClass: ['snackbar-error']
+        });
+      }
+    });
+  }
+
+  loadRentalManually() {
+    const id = this.carInformationFormGroup.get('rentalnr')?.value;
+    if (id) {
+      this.loadRental(String(id));
+    }
+  }
+
   updateActualCheckOut() {
     const date = this.actualCheckoutDateControl.value;
     const time = this.actualCheckoutTimeControl.value;
@@ -177,12 +257,6 @@ export class CheckInComponent implements OnInit {
       combined.setHours(+hours);
       combined.setMinutes(+minutes);
       this.checkinDatetime.setValue(combined);
-    }
-  }
-  toggleAdditionalFees() {
-    this.showAdditionalFees = !this.showAdditionalFees;
-    if (this.showAdditionalFees && this.additionalFees.length === 0) {
-      this.addAdditionalFees();
     }
   }
   parseDate(day: string, month: string, year: string): Date | null {
@@ -229,53 +303,127 @@ export class CheckInComponent implements OnInit {
     }
   }
 
-  addAdditionalFees() {
-    const feeGroup = this.fb.group<{ feeType: FormControl<string | null>, price: FormControl<number | null> }>({
-      feeType: this.fb.control(null),
-      price: this.fb.control(null),
-    });
-
-    const feeTypeControl = feeGroup.get('feeType');
-    const priceControl = feeGroup.get('price');
-
-    feeTypeControl?.valueChanges.subscribe((selectedType) => {
-      if (selectedType && selectedType in this.feeTypePriceMap && !priceControl?.dirty) {
-        priceControl?.setValue(this.feeTypePriceMap[selectedType]);
-      } else {
-        priceControl?.setValue(null);
-      }
-    });
-
-    this.additionalFees.push(feeGroup);
+  onNextStep() {
+    const mva = this.carInformationFormGroup.get('mva')?.value;
+    if (mva) {
+      this.loadDamages(mva);
+    }
   }
 
+  loadDamages(mva: string) {
+    this.damageService.getDamagesByVehicle(mva).subscribe({
+      next: (damages) => { this.damages = damages; },
+      error: (err) => console.error('Failed to load damages', err)
+    });
+  }
 
-
-  removeAdditionalFee(index: number) {
-    this.additionalFees.removeAt(index);
+  openDiagram(damage: DamageRecord) {
+    this.dialog.open(DamageDiagramDialogComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      data: {
+        markerX: damage.markerX,
+        markerY: damage.markerY,
+        imageUrls: damage.imageUrls,
+        part: damage.part,
+        damageType: damage.damageType,
+      },
+    });
   }
 
   addDamage() {
+    const vehicleId = this.carInformationFormGroup.getRawValue().mva;
+    if (!vehicleId) {
+      this.snackBar.open('Please load a rental first so the damage can be linked to a vehicle.', 'Close', { duration: 4000 });
+      return;
+    }
+
     const dialogRef = this.dialog.open(DamageMarkerComponent, {
       width: '500px',
       data: {},
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        console.log('Damage coordinates:', result);
-        // Save to database later
-      }
+      if (!result) return;
+
+      const rentalId = this.checkInForm.get('rentalNumber')?.value
+        || this.checkInForm.get('rentalnr')?.value
+        || undefined;
+
+      const payload: DamageRecord = {
+        vehicleId,
+        rentalId,
+        part: result.part,
+        direction: result.direction,
+        damageType: result.damageType,
+        severity: result.severity,
+        state: result.state,
+        licensePlate: result.licensePlate,
+        markerX: result.markerX,
+        markerY: result.markerY
+      };
+
+      this.damageService.createDamage(payload).subscribe({
+        next: (created) => {
+          this.damages = [created, ...this.damages];
+          if (result.files?.length > 0 && created.id) {
+            this.damageService.uploadImages(created.id, result.files).subscribe();
+          }
+          this.snackBar.open('Damage added.', 'Close', { duration: 2500 });
+        },
+        error: (err) => {
+          console.error('Failed to save damage', err);
+          this.snackBar.open('Failed to save damage. Please try again.', 'Close', { duration: 4000 });
+        }
+      });
     });
   }
   save() {
-    // TODO: add  save logic
+    const rentalIdRaw = this.checkInForm.get('rentalnr')?.value
+      ?? this.checkInForm.get('rentalNumber')?.value;
+    const rentalId = Number(rentalIdRaw);
+    if (!rentalIdRaw || Number.isNaN(rentalId)) {
+      this.snackBar.open('A valid rental number is required to check in.', 'Close', {
+        duration: 4000, horizontalPosition: 'center', verticalPosition: 'top',
+        panelClass: ['snackbar-error']
+      });
+      return;
+    }
 
-    this.snackBar.open('Check-in saved successfully!', 'Close', {
-      duration: 3000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['snackbar-success']
+    // Only the fee inputs actually bound in the template are submitted.
+    // Each maps to a seeded check-in FeeType (category "Checkin") by name.
+    const feeControlMap: { [controlName: string]: string } = {
+      mileageExtra: 'MileageExtra',
+      fuelExtra: 'FuelExtra'
+    };
+    const fees: CheckinFeeInput[] = Object.entries(feeControlMap)
+      .map(([controlName, feeType]) => ({
+        feeType,
+        quantity: 1,
+        unitPrice: Number(this.checkInForm.get(controlName)?.value)
+      }))
+      .filter(fee => !Number.isNaN(fee.unitPrice) && fee.unitPrice > 0);
+
+    this.checkinService.checkIn({
+      rentalId,
+      kmIn: Number(this.checkInForm.get('kmIn')?.value) || 0,
+      fuelIn: Number(this.checkInForm.get('fuelIn')?.value) || 0,
+      fees
+    }).subscribe({
+      next: (result) => {
+        this.snackBar.open(
+          `Check-in saved successfully! Total fees: ${result.totalFees}`, 'Close', {
+          duration: 3000, horizontalPosition: 'center', verticalPosition: 'top',
+          panelClass: ['snackbar-success']
+        });
+      },
+      error: (err) => {
+        const detail = err?.error?.detail || 'Check-in failed. Please try again.';
+        this.snackBar.open(detail, 'Close', {
+          duration: 5000, horizontalPosition: 'center', verticalPosition: 'top',
+          panelClass: ['snackbar-error']
+        });
+      }
     });
   }
 generateInvoice() {

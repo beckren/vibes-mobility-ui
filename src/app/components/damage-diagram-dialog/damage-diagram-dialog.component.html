@@ -1,0 +1,26 @@
+<div class="diagram-dialog">
+  <h2 class="title">
+    Damage Diagram
+    <span class="subtitle" *ngIf="data.part || data.damageType">
+      {{ data.part }}<span *ngIf="data.part && data.damageType"> · </span>{{ data.damageType }}
+    </span>
+  </h2>
+
+  <div class="image-container">
+    <img src="assets/car-damage.png" alt="Damage diagram" />
+    <div
+      *ngIf="hasMarker"
+      class="marker"
+      [style.left.%]="data.markerX"
+      [style.top.%]="data.markerY"
+    ></div>
+  </div>
+
+  <p class="empty-hint" *ngIf="!hasMarker">
+    No marker was placed for this damage.
+  </p>
+
+  <div class="actions">
+    <button mat-raised-button class="close-btn" (click)="close()">Close</button>
+  </div>
+</div>

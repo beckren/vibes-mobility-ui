@@ -1,0 +1,73 @@
+<h2 class="title">Damage History</h2>
+
+<div class="table-container">
+  <table mat-table [dataSource]="damages" class="mat-elevation-z8">
+
+    <ng-container matColumnDef="part">
+      <th mat-header-cell *matHeaderCellDef>Car Part</th>
+      <td mat-cell *matCellDef="let d">{{ d.part }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="direction">
+      <th mat-header-cell *matHeaderCellDef>Direction</th>
+      <td mat-cell *matCellDef="let d">{{ d.direction }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="damageType">
+      <th mat-header-cell *matHeaderCellDef>Damage Type</th>
+      <td mat-cell *matCellDef="let d">{{ d.damageType }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="severity">
+      <th mat-header-cell *matHeaderCellDef>Severity</th>
+      <td mat-cell *matCellDef="let d">{{ d.severity }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="state">
+      <th mat-header-cell *matHeaderCellDef>State</th>
+      <td mat-cell *matCellDef="let d">{{ d.state }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="reportedAt">
+      <th mat-header-cell *matHeaderCellDef>Reported At</th>
+      <td mat-cell *matCellDef="let d">{{ d.reportedAt | date:'dd/MM/yyyy' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="markers">
+      <th mat-header-cell *matHeaderCellDef>Diagram</th>
+      <td mat-cell *matCellDef="let d">
+        <div
+          class="marker-thumb"
+          (click)="openDiagram(d)"
+          title="Click to enlarge"
+        >
+          <img src="assets/car-damage.png" alt="Damage diagram" />
+          <div
+            *ngIf="d.markerX != null && d.markerY != null"
+            class="marker"
+            [style.left.%]="d.markerX"
+            [style.top.%]="d.markerY"
+          ></div>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+        No damages recorded for this vehicle.
+      </td>
+    </tr>
+
+  </table>
+</div>
+
+<div class="buttons-container">
+  <button mat-stroked-button class="back-btn" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon> Back
+  </button>
+  <button mat-raised-button class="add-btn" (click)="addDamage()">
+    <mat-icon>add</mat-icon> Add Damage
+  </button>
+</div>

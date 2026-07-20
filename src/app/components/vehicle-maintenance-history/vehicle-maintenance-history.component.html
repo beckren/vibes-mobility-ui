@@ -1,11 +1,6 @@
 <h2 class="title">Vehicle Maintenance History</h2>
 <h2 class="title mobile-title">Maintenance</h2>
 
-<mat-form-field appearance="outline" class="mva-input">
-  <mat-label>MVA</mat-label>
-  <input matInput [(ngModel)]="mva" />
-</mat-form-field>
-
 <mat-form-field appearance="outline" class="search-input">
   <mat-label>Search history</mat-label>
   <input matInput (input)="applyFilter($event)" />
@@ -14,9 +9,9 @@
 <div class="table-container">
   <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 desktop-table">
 
-    <ng-container matColumnDef="dateOfLeave">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> Date of Leave </th>
-      <td mat-cell *matCellDef="let record"> {{ record.dateOfLeave }} </td>
+    <ng-container matColumnDef="reason">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Reason </th>
+      <td mat-cell *matCellDef="let record"> {{ record.reason }} </td>
     </ng-container>
 
     <ng-container matColumnDef="checkOut">
@@ -60,7 +55,7 @@
   <div class="mobile-cards" *ngFor="let record of dataSource.filteredData">
     <div class="card">
       <div class="card-header">
-        <h3>{{ record.dateOfLeave }}</h3>
+        <h3>{{ record.reason }}</h3>
         <mat-chip [ngClass]="{ 'completed': record.status === 'Completed', 'active': record.status === 'Active' }">
           {{ record.status }}
         </mat-chip>

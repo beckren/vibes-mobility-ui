@@ -1,0 +1,64 @@
+.diagram-dialog {
+  padding: 16px;
+  background: var(--color-gradient-opaque);
+  background-color: black;
+  color: white;
+  border-radius: 10px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-family: "Inter";
+  color: white;
+}
+
+.subtitle {
+  display: block;
+  font-size: 0.7em;
+  opacity: 0.7;
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.marker {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: var(--button-2, #904aac);
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+.empty-hint {
+  text-align: center;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 12px 0 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.close-btn {
+  color: white !important;
+  background: var(--button-2, #904aac) !important;
+  border-radius: 10px;
+}

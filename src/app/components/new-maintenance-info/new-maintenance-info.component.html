@@ -76,8 +76,8 @@
       </div>
       <div class="column">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Address</mat-label>
-          <input matInput formControlName="address" />
+          <mat-label>Address ID</mat-label>
+          <input matInput type="number" formControlName="addressId" />
         </mat-form-field>
       </div>
     </div>
@@ -99,6 +99,8 @@
     </div>
   </mat-card>
 </form>
+
+<div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
 
 <div class="buttons-container">
   <button mat-button style="color: white" (click)="cancelBtn()">Cancel</button>

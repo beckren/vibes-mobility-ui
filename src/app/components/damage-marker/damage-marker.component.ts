@@ -1,7 +1,7 @@
 import { Component, Inject, ViewEncapsulation } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -19,82 +19,77 @@ interface DamageMark {
   selector: 'app-damage-marker',
   templateUrl: './damage-marker.component.html',
   styleUrls: ['./damage-marker.component.scss'],
-  encapsulation: ViewEncapsulation.None, // This is the issue - it makes styles global
+  // ViewEncapsulation.None is required so the SCSS can theme the Material
+  // dialog/overlay, which renders outside this component's DOM.
+  encapsulation: ViewEncapsulation.None,
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    
   ],
 })
 export class DamageMarkerComponent {
-  damageMarks: DamageMark[] = [];
-  longPressTimeout: any;
+  damageForm: FormGroup;
+  marker: DamageMark | null = null;
+  uploadedFiles: File[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<DamageMarkerComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
-  addMarker(event: MouseEvent | TouchEvent) {
-    const image = event.target as HTMLImageElement;
+    @Inject(MAT_DIALOG_DATA) public data: unknown,
+    private fb: FormBuilder
+  ) {
+    this.damageForm = this.fb.group({
+      part: ['', Validators.required],
+      direction: [''],
+      damageType: ['', Validators.required],
+      severity: [''],
+      state: [''],
+      licensePlate: ['']
+    });
+  }
 
+  addMarker(event: MouseEvent) {
+    const image = event.target as HTMLImageElement;
     if (!image || image.tagName !== 'IMG') return;
 
     const rect = image.getBoundingClientRect();
-    let x: number = 0;
-    let y: number = 0;
-
-    if (event instanceof MouseEvent) {
-      x = ((event.clientX - rect.left) / image.clientWidth) * 100;
-      y = ((event.clientY - rect.top) / image.clientHeight) * 100;
-    } else if (event instanceof TouchEvent) {
-      const touch = event.touches[0] || event.changedTouches[0];
-      x = ((touch.clientX - rect.left) / image.clientWidth) * 100;
-      y = ((touch.clientY - rect.top) / image.clientHeight) * 100;
-    }
+    let x = ((event.clientX - rect.left) / image.clientWidth) * 100;
+    let y = ((event.clientY - rect.top) / image.clientHeight) * 100;
 
     x = Math.min(Math.max(x, 0), 100);
     y = Math.min(Math.max(y, 0), 100);
 
-    console.log(`Marker added at X: ${x}% Y: ${y}%`);
-
-    this.damageMarks.push({ x, y });
-  }
-  uploadedFiles: File[] = [];
-
-  onImageUpload(event: any) {
-    const files: FileList = event.target.files;
-    this.uploadedFiles = Array.from(files);
-    console.log(this.uploadedFiles); // for now
+    this.marker = { x, y };
   }
 
-
-  removeMarker(index: number) {
-    this.damageMarks.splice(index, 1);
+  onImageUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.uploadedFiles = input.files ? Array.from(input.files) : [];
   }
 
-  onMarkerClick(index: number) {
-    this.removeMarker(index);
-  }
-
-  onMarkerLongPress(index: number) {
-    this.longPressTimeout = setTimeout(() => {
-      this.removeMarker(index);
-    }, 500);
-  }
-
-  onMarkerRelease() {
-    clearTimeout(this.longPressTimeout);
+  removeMarker() {
+    this.marker = null;
   }
 
   save() {
-    this.dialogRef.close(this.damageMarks);
+    if (this.damageForm.invalid) {
+      this.damageForm.markAllAsTouched();
+      return;
+    }
+
+    this.dialogRef.close({
+      ...this.damageForm.value,
+      markerX: this.marker?.x,
+      markerY: this.marker?.y,
+      files: this.uploadedFiles
+    });
   }
 
   close() {

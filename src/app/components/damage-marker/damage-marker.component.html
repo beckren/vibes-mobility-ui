@@ -4,10 +4,11 @@
       <h2 class="title">Add Damage</h2>
     </div>
 
+    <form [formGroup]="damageForm">
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Car Part</mat-label>
-        <mat-select>
+        <mat-select formControlName="part">
           <mat-option value="door">Door</mat-option>
           <mat-option value="bumper">Bumper</mat-option>
         </mat-select>
@@ -15,7 +16,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Direction</mat-label>
-        <mat-select>
+        <mat-select formControlName="direction">
           <mat-option value="left">Left</mat-option>
           <mat-option value="right">Right</mat-option>
           <mat-option value="up">Up</mat-option>
@@ -26,7 +27,7 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Damage</mat-label>
-        <mat-select>
+        <mat-select formControlName="damageType">
           <mat-option value="scratch">Scratch</mat-option>
           <mat-option value="dent">Dent</mat-option>
         </mat-select>
@@ -36,7 +37,7 @@
     <div class="form-row">
       <mat-form-field appearance="outline">
         <mat-label>Severity</mat-label>
-        <mat-select>
+        <mat-select formControlName="severity">
           <mat-option value="low">Low</mat-option>
           <mat-option value="high">High</mat-option>
         </mat-select>
@@ -44,20 +45,21 @@
 
       <mat-form-field appearance="outline">
         <mat-label>State</mat-label>
-        <mat-select>
-          <mat-option value="used">Available</mat-option>
-          <mat-option value="new">Not Working</mat-option>
+        <mat-select formControlName="state">
+          <mat-option value="available">Available</mat-option>
+          <mat-option value="not_working">Not Working</mat-option>
         </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>License Plate</mat-label>
-        <input matInput placeholder="e.g. AB 123 CD" />
+        <input matInput formControlName="licensePlate" placeholder="e.g. AB 123 CD" />
       </mat-form-field>
     </div>
+    </form>
     <div class="upload-section" style="width: 100%; margin-bottom: 16px">
       <label style="font-weight: 500; margin-bottom: 6px; display: block">
-        Upload Fuel/Mileage Image(s)
+        Upload Damage Image(s)
       </label>
       <input
         type="file"
@@ -71,24 +73,22 @@
       </div>
     </div>
     <p class="instructions">
-      Tap or click anywhere on the image to mark the damage.<br />
-      On mobile/tablet, double-tap to mark.<br />
-      Tap/click on the dot to delete!
+      Tap or click on the image to mark the damage location.<br />
+      Tap/click the dot to remove it.
     </p>
     <div class="image-container">
       <img
         src="assets/car-damage.png"
         alt="Car Image"
         (click)="addMarker($event)"
-        (touchstart)="addMarker($event)"
         style="width: 100%; height: auto; display: block"
       />
       <div
-        *ngFor="let mark of damageMarks; let i = index"
+        *ngIf="marker"
         class="marker"
-        [style.left.%]="mark.x"
-        [style.top.%]="mark.y"
-        (click)="onMarkerClick(i)"
+        [style.left.%]="marker.x"
+        [style.top.%]="marker.y"
+        (click)="removeMarker()"
       ></div>
     </div>
   </div>
@@ -96,5 +96,5 @@
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="close()">Cancel</button>
-  <button mat-raised-button class="add-btn" (click)="save()">Add</button>
+  <button mat-raised-button class="add-btn" [disabled]="damageForm.invalid" (click)="save()">Add</button>
 </mat-dialog-actions>

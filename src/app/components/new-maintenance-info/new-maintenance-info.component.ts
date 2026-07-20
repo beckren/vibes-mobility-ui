@@ -11,9 +11,9 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDatepickerToggle } from '@angular/material/datepicker';
-import { MatDialog } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MaintenanceCreateBody, MaintenanceService } from '../_common/_service/maintenance.service';
 
 @Component({
   selector: 'app-new-maintenance-info',
@@ -31,15 +31,23 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatCardModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSelectModule
+    MatSelectModule,
+    MatSnackBarModule
   ]
 })
 export class NewMaintenanceInfoComponent {
 
   NewVehicleForm!: FormGroup;  
-  days: number = 0;  
+  days: number = 0;
+  errorMessage = '';
 
-  constructor(private fb: FormBuilder, private route: ActivatedRoute, private router: Router, private dialog: MatDialog) { }
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router,
+    private maintenanceService: MaintenanceService,
+    private snackBar: MatSnackBar
+  ) { }
 
   ngOnInit() {
     this.NewVehicleForm = this.fb.group({
@@ -49,7 +57,7 @@ export class NewMaintenanceInfoComponent {
       placeOfLeave: ['memmingen', Validators.required],
       checkoutDate: [null, Validators.required],
       checkinDate: [null, Validators.required],
-      address: ['', Validators.required],
+      addressId: [null, [Validators.required, Validators.min(1)]],
       reason: ['', Validators.required],
       repairType: ['', Validators.required],
       model: ['Corolla', Validators.required],
@@ -79,12 +87,44 @@ export class NewMaintenanceInfoComponent {
   }
 
   addVehicle() {
-    if (this.NewVehicleForm.valid) {
-      console.log(this.NewVehicleForm.value);
-      this.router.navigate(['/vehicle-registration']);
-    } else {
-      console.log('Form is invalid');
+    this.errorMessage = '';
+
+    if (this.NewVehicleForm.invalid) {
+      this.NewVehicleForm.markAllAsTouched();
+      this.errorMessage = 'Please fill out all required fields.';
+      return;
     }
+
+    const value = this.NewVehicleForm.getRawValue();
+    const body: MaintenanceCreateBody = {
+      mva: value.mva,
+      location: value.placeOfLeave,
+      reason: value.reason,
+      addressId: Number(value.addressId),
+      repairType: value.repairType,
+      checkOut: this.toIsoString(value.checkoutDate),
+      checkIn: this.toIsoString(value.checkinDate)
+    };
+
+    this.maintenanceService.createMaintenance(body).subscribe({
+      next: () => {
+        this.NewVehicleForm.reset();
+        this.snackBar.open('Maintenance saved successfully!', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['snackbar-success']
+        });
+        this.router.navigate(['/vehicle-registration']);
+      },
+      error: () => {
+        this.errorMessage = 'Failed to save maintenance. Please try again.';
+      }
+    });
+  }
+
+  private toIsoString(value: Date | string | null): string | null {
+    return value ? new Date(value).toISOString() : null;
   }
 
   cancelBtn() {
