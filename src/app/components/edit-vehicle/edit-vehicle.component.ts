@@ -17,6 +17,7 @@ import { DamageMarkerComponent } from '../damage-marker/damage-marker.component'
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { VehicleService } from '../_common/_service/vehicle.service';
+import { DamageService, DamageRecord } from '../_common/_service/damage.service';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -71,7 +72,7 @@ export class EditVehicleComponent implements OnInit {
   isEditing = false;
 
 
-  constructor(private route: ActivatedRoute, private router: Router, private dialog: MatDialog, private fb: FormBuilder, private vehicleService: VehicleService) { }
+  constructor(private route: ActivatedRoute, private router: Router, private dialog: MatDialog, private fb: FormBuilder, private vehicleService: VehicleService, private damageService: DamageService) { }
   displayedColumns = ['CarPart', 'Damage'];
 
 
@@ -117,6 +118,7 @@ export class EditVehicleComponent implements OnInit {
             color: vehicle.color,
             millage: vehicle.mileage
           });
+          this.loadDamageHistory(mva);
         },
         error: (err) => {
           console.error('Failed to load vehicle', err);
@@ -151,22 +153,63 @@ export class EditVehicleComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('Damage coordinates:', result);
-        //Save to database later
-      }
+      if (!result) return;
+
+      const vehicleId = this.vehicleForm.getRawValue().mva;
+      const payload: DamageRecord = {
+        vehicleId,
+        part: result.part,
+        direction: result.direction,
+        damageType: result.damageType,
+        severity: result.severity,
+        state: result.state,
+        licensePlate: result.licensePlate,
+        markerX: result.markerX,
+        markerY: result.markerY
+      };
+
+      this.damageService.createDamage(payload).subscribe({
+        next: (created) => {
+          if (result.files?.length > 0 && created.id) {
+            this.damageService.uploadImages(created.id, result.files).subscribe();
+          }
+          this.loadDamageHistory(vehicleId);
+        },
+        error: (err) => console.error('Failed to save damage', err)
+      });
     });
   }
 
   viewMaintenanceHistory() {
-    console.log("View Maintenance History clicked!");
-    this.router.navigate(['/vehicle-maintenance-history'])
+    const mva = this.route.snapshot.paramMap.get('id');
+    if (mva) {
+      this.router.navigate(['/vehicle-maintenance-history', mva]);
+    }
+  }
+
+  viewDamageHistory() {
+    const mva = this.route.snapshot.paramMap.get('id');
+    if (mva) {
+      this.router.navigate(['/vehicle-damage-history', mva]);
+    }
   }
 
   removeDamage(item: DamageHistoryItem) {
     this.damageHistory = this.damageHistory.filter(d => d !== item);
   }
+
+  loadDamageHistory(mva: string) {
+    this.damageService.getDamagesByVehicle(mva).subscribe({
+      next: (damages) => {
+        this.damageHistory = damages.map(d => ({ part: d.part, damage: d.damageType }));
+      },
+      error: (err) => console.error('Failed to load damage history', err)
+    });
+  }
   gotoHistory() {
-    this.router.navigate(['/vehicle-rental-history']);
+    const mva = this.route.snapshot.paramMap.get('id');
+    if (mva) {
+      this.router.navigate(['/vehicle-rental-history', mva]);
+    }
   }
 }

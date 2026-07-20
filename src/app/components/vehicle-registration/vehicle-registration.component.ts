@@ -15,6 +15,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDivider } from '@angular/material/divider';
 import { MatDatepicker, MatDatepickerToggle } from '@angular/material/datepicker';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Vehicle, VehicleService } from '../_common/_service/vehicle.service';
 
 @Component({
   selector: 'app-vehicle-registration',
@@ -41,17 +42,52 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   ]
 })
 export class VehicleRegistrationComponent {
+  vehicle: Vehicle = {
+    mva: '',
+    carGroup: 'IDMR',
+    licensePlate: '',
+    fuel: 'Gasoline',
+    brand: '',
+    model: '',
+    mileage: '',
+    color: '',
+    status: 'Available',
+    transmission: 'Automatic'
+  };
 
-  constructor(private router: Router, private snackBar: MatSnackBar) { }
+  constructor(
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private vehicleService: VehicleService
+  ) { }
 
 save() {
-  // TODO: add your save logic (API call, printing, etc.)
+  if (!this.vehicle.mva || !this.vehicle.licensePlate) {
+    this.snackBar.open('MVA and license plate are required.', 'Close', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
+    return;
+  }
 
-  this.snackBar.open('Check-in saved successfully!', 'Close', {
-    duration: 3000,
-    horizontalPosition: 'center',
-    verticalPosition: 'top',
-    panelClass: ['snackbar-success']
+  this.vehicleService.createVehicle(this.vehicle).subscribe({
+    next: () => {
+      this.snackBar.open('Vehicle saved successfully!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-success']
+      });
+      this.router.navigate(['/vehicles']);
+    },
+    error: () => {
+      this.snackBar.open('Failed to save vehicle. Please try again.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+    }
   });
 }
 

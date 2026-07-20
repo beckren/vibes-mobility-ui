@@ -49,7 +49,7 @@ export class BackButtonComponent {
 
     private shouldShowBackButton(): boolean {
         const currentUrl = this.router.url;
-        const baseRoutes = ['/', '/dashboard', '/login', '/forgot-password', '/reset-password'];
+        const baseRoutes = ['/', '/dashboard'];
         return !baseRoutes.includes(currentUrl);
     }
 }

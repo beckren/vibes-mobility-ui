@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -12,6 +12,8 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { VehicleService, Vehicle as ApiVehicle } from '../_common/_service/vehicle.service';
 
 // ✅ define interface OUTSIDE component
 interface Vehicle {
@@ -38,23 +40,46 @@ interface Vehicle {
     MatTableModule,
     MatSortModule,
     MatInputModule,
+    MatProgressSpinnerModule,
   ],
 })
-export class DashComponent {
-  constructor(private router: Router) {}
+export class DashComponent implements OnInit {
+  constructor(
+    private router: Router,
+    private vehicleService: VehicleService
+  ) {}
 
   // Table setup
   dataSource = new MatTableDataSource<Vehicle>();
   displayedColumns = ['carId', 'plate', 'model', 'color', 'status'];
+  isLoading = true;
+  errorMessage = '';
 
   ngOnInit() {
-    const vehiclesData: Vehicle[] = [
-      { carId: 'KARTEX1234', plate: 'ABC-123', model: 'SUV', color: 'Black', status: 'Active' },
-      { carId: 'KARTEX5678', plate: 'XYZ-456', model: 'Sedan', color: 'White', status: 'Active' },
-      { carId: 'KARTEX9101', plate: 'DEF-789', model: 'Hatchback', color: 'Red', status: 'Active' },
-      { carId: 'KARTEX1122', plate: 'GHI-101', model: 'Truck', color: 'Blue', status: 'Active' },
-    ];
-    this.dataSource.data = vehiclesData;
+    this.loadVehicles();
+  }
+
+  loadVehicles(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.vehicleService.getAllVehicles().subscribe({
+      next: (vehicles: ApiVehicle[]) => {
+        this.dataSource.data = vehicles.map(vehicle => ({
+          carId: vehicle.mva,
+          plate: vehicle.licensePlate,
+          model: vehicle.model || vehicle.carModel || '',
+          color: vehicle.color,
+          status: vehicle.status || 'Unknown',
+        }));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load dashboard vehicles', err);
+        this.errorMessage = 'Failed to load vehicles. Please try again.';
+        this.isLoading = false;
+      }
+    });
   }
 
   applyFilter(event: Event) {

@@ -49,8 +49,8 @@ export class UsersTableComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  editUser() {
-    this.router.navigate(['/edit-user']);
+  editUser(user: User) {
+    this.router.navigate(['/edit-user'], { state: { user } });
   }
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

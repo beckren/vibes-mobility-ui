@@ -42,4 +42,8 @@ export class VehicleService {
   getVehicleByMva(mva: string): Observable<Vehicle> {
     return this.http.get<Vehicle>(`${environment.apiUrl}/vehicle/${encodeURIComponent(mva)}`);
   }
+
+  createVehicle(vehicle: Vehicle): Observable<Vehicle> {
+    return this.http.post<Vehicle>(`${environment.apiUrl}/vehicle`, vehicle);
+  }
 }

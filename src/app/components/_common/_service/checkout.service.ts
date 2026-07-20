@@ -61,6 +61,8 @@ export interface CheckoutPricingRecord {
   carGroupName: string;
   targetSalePrice?: string | null;
   grossListSalePrice?: string | null;
+  kmOut?: string | null;
+  fuelOut?: string | null;
   additionalFees?: AdditionalFeeRecord[] | null;
   discount?: DiscountRecord | null;
 }
@@ -140,7 +142,7 @@ export class CheckoutService {
     return this.feeService.getAllAdditionalFeesByInterval(checkoutDateISO, checkinDateISO);
   } */
 
-  // Persist checkout - Bearer token is added automatically by AuthenticationInterceptor
+  // Persist checkout - Bearer-Token wird automatisch vom keycloak-angular Interceptor angehaengt
   submitCheckout(payload: CheckoutPayload): Observable<CheckoutResponse> {
     return this.http.post<CheckoutResponse>(`${environment.apiUrl}/checkout`, payload);
   }

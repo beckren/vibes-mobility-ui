@@ -62,11 +62,16 @@
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="view">
-      <th mat-header-cell *matHeaderCellDef>View</th>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let record">
-        <button mat-icon-button color="accent">
-          <mat-icon>edit</mat-icon>
+        <button
+          *ngIf="record.status === 'Active'"
+          mat-stroked-button
+          color="primary"
+          (click)="checkIn(record.rentalId)"
+        >
+          <mat-icon>assignment_return</mat-icon> Check In
         </button>
       </td>
     </ng-container>
@@ -92,8 +97,13 @@
       <p>Rental ID: {{ record.rentalId }}</p>
       <p>Check Out: {{ record.checkOut }}</p>
       <p>Check In: {{ record.checkIn }}</p>
-      <button mat-icon-button color="primary" class="edit-btn">
-        <mat-icon>edit</mat-icon>
+      <button
+        *ngIf="record.status === 'Active'"
+        mat-stroked-button
+        color="primary"
+        (click)="checkIn(record.rentalId)"
+      >
+        <mat-icon>assignment_return</mat-icon> Check In
       </button>
     </div>
   </div>

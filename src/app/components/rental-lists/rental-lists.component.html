@@ -1,115 +1,136 @@
 <h2 class="title">Open Rentals</h2>
+
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading rentals...</p>
+</div>
+
+<div *ngIf="errorMessage && !isLoading" class="error-container">
+  <mat-icon color="warn">error</mat-icon>
+  <p>{{ errorMessage }}</p>
+  <button mat-raised-button color="primary" (click)="refreshRentals()">
+    Retry
+  </button>
+</div>
+
+<ng-container *ngIf="!isLoading && !errorMessage">
   <input
     matInput
     placeholder="Search rentals"
     (input)="applyFilter($event)"
     class="search-input"
   />
-<div class="table-container">
+  <div class="table-container">
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      matSort
+      class="mat-elevation-z8 desktop-table"
+    >
+      <ng-container matColumnDef="rentalId">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Rental ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.rentalId }}</td>
+      </ng-container>
 
+      <ng-container matColumnDef="customer">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
+        <td mat-cell *matCellDef="let element">{{ element.customer }}</td>
+      </ng-container>
 
-  <table
-    mat-table
-    [dataSource]="dataSource"
-    matSort
-    class="mat-elevation-z8 desktop-table"
-  >
-    <ng-container matColumnDef="rentalId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Rental ID</th>
-      <td mat-cell *matCellDef="let element">{{ element.rentalId }}</td>
-    </ng-container>
+      <ng-container matColumnDef="car">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Car</th>
+        <td mat-cell *matCellDef="let element">{{ element.car }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="customer">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
-      <td mat-cell *matCellDef="let element">{{ element.customer }}</td>
-    </ng-container>
+      <ng-container matColumnDef="employee">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Employee</th>
+        <td mat-cell *matCellDef="let element">{{ element.employee }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="car">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Car</th>
-      <td mat-cell *matCellDef="let element">{{ element.car }}</td>
-    </ng-container>
+      <ng-container matColumnDef="checkOutPrice">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Check Out Price</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.checkOutPrice | currency : "USD" : "symbol" }}
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="employee">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Employee</th>
-      <td mat-cell *matCellDef="let element">{{ element.employee }}</td>
-    </ng-container>
+      <ng-container matColumnDef="checkOut">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Check Out</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.checkOut | date : "dd/MM/yyyy" }}
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="checkOutPrice">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Check Out Price</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.checkOutPrice | currency : "USD" : "symbol" }}
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="checkIn">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Check In</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.checkIn | date : "dd/MM/yyyy" }}
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="checkOut">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Check Out</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.checkOut | date : "dd/MM/yyyy" }}
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status" [ngClass]="element.status.toLowerCase()">
+            {{ element.status }}
+          </span>
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="checkIn">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Check In</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.checkIn | date : "dd/MM/yyyy" }}
-      </td>
-    </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button color="primary">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>Status</th>
-      <td mat-cell *matCellDef="let element">
-        <span class="status" [ngClass]="element.status.toLowerCase()">
-          {{ element.status }}
-        </span>
-      </td>
-    </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
 
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="primary">
+    <div *ngIf="dataSource.data.length === 0" class="empty-state">
+      <mat-icon>assignment</mat-icon>
+      <p>No rentals found</p>
+    </div>
+
+    <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
+      <div class="card">
+        <div class="card-header">
+          <h3>{{ element.rentalId }} - {{ element.customer }}</h3>
+          <p class="price">
+            {{ element.checkOutPrice | currency : "USD" : "symbol" }}
+          </p>
+        </div>
+        <p>Car: {{ element.car }}</p>
+        <p>Employee: {{ element.employee }}</p>
+        <p>Check Out: {{ element.checkOut | date : "dd/MM/yyyy" }}</p>
+        <p>Check In: {{ element.checkIn | date : "dd/MM/yyyy" }}</p>
+        <p>
+          <span
+            class="status"
+            [ngClass]="{
+              completed: element.status === 'Completed',
+              active: element.status === 'Active'
+            }"
+          >
+            {{ element.status }}
+          </span>
+        </p>
+        <button mat-icon-button color="primary" class="edit-btn">
           <mat-icon>edit</mat-icon>
         </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-
-  <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
-    <div class="card">
-      <div class="card-header">
-        <h3>{{ element.rentalId }} - {{ element.customer }}</h3>
-        <p class="price">
-          {{ element.checkOutPrice | currency : "USD" : "symbol" }}
-        </p>
       </div>
-      <p>Car: {{ element.car }}</p>
-      <p>Employee: {{ element.employee }}</p>
-      <p>Check Out: {{ element.checkOut | date : "dd/MM/yyyy" }}</p>
-      <p>Check In: {{ element.checkIn | date : "dd/MM/yyyy" }}</p>
-      <p>
-        <span
-          class="status"
-          [ngClass]="{
-            completed: element.status === 'Completed',
-            active: element.status === 'Active'
-          }"
-        >
-          {{ element.status }}
-        </span>
-      </p>
-      <button mat-icon-button color="primary" class="edit-btn">
-        <mat-icon>edit</mat-icon>
-      </button>
     </div>
   </div>
+</ng-container>
 
-
+<div class="buttons-container">
+  <button mat-raised-button color="primary" (click)="refreshRentals()" [disabled]="isLoading">
+    <mat-icon>refresh</mat-icon> Refresh
+  </button>
+  <button mat-raised-button class="new-rental-btn" (click)="gotoCheckOut()">
+    New Rental
+  </button>
 </div>
-  <div class="buttons-container">
-    <button mat-raised-button class="new-rental-btn" (click)="gotoCheckOut()">
-      New Rental
-    </button>
-  </div>

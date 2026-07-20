@@ -17,23 +17,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DamageMarkerComponent } from '../damage-marker/damage-marker.component';
-
-interface Vehicle {
-  carId: string;
-  model: string;
-  color: string;
-  fuel: string;
-  millage: string;
-  mva: string;
-  transmission: string;
-  tireType: string;
-  fuelLevel: string;
-  tuvInspection: string;
-  licencePlate: string;
-  brand: string;
-  equipment: string;
-  status: string;
-}
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Vehicle, VehicleService } from '../_common/_service/vehicle.service';
 
 interface DamageHistoryItem {
   part: string;
@@ -57,7 +42,8 @@ interface DamageHistoryItem {
     MatTableModule,
     MatCardModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSnackBarModule
   ]
 })
 export class AddVehicleComponent {
@@ -69,33 +55,79 @@ export class AddVehicleComponent {
     private route: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar,
+    private vehicleService: VehicleService
   ) { }
   ngOnInit(): void {
     this.NewVehicleForm = this.fb.group({
       carId: [{ value: '', disabled: true }],
       registrationDate: ['', Validators.required],
       turnbackdate: ['', Validators.required],
-      transmission: [''],
+      carGroup: ['IDMR', Validators.required],
+      transmission: ['Automatic', Validators.required],
       tireType: [''],
-      status: [''],
-      mva: [''],
+      status: ['Available', Validators.required],
+      mva: ['', Validators.required],
       year: [''],
-      fuel: [''],
+      fuel: ['Gasoline', Validators.required],
       tireInformation: [''],
-      licencePlate: [''],
-      brand: [''],
+      licencePlate: ['', Validators.required],
+      brand: ['', Validators.required],
       fuelLevel: [''],
       equipment: [''],
-      model: [''],
-      color: [''],
+      model: ['', Validators.required],
+      color: ['', Validators.required],
       millage: [''],
-      tuvInspection: ['']
+      pmMileage: [''],
+      tuvInspection: [''],
+      turnbackMileage: ['']
     });
   }
   addVehicle() {
-    // Save the new vehicle
-    this.router.navigate(['/vehicle-registration']);
+    if (this.NewVehicleForm.invalid) {
+      this.NewVehicleForm.markAllAsTouched();
+      this.snackBar.open('Please fill all required vehicle fields.', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
+      return;
+    }
+
+    const value = this.NewVehicleForm.getRawValue();
+    const vehicle: Vehicle = {
+      mva: value.mva,
+      carGroup: value.carGroup,
+      licensePlate: value.licencePlate,
+      fuel: value.fuel,
+      brand: value.brand,
+      model: value.model,
+      mileage: value.millage == null ? '' : String(value.millage),
+      color: value.color,
+      status: value.status,
+      transmission: value.transmission,
+      year: value.year ? Number(value.year) : undefined
+    };
+
+    this.vehicleService.createVehicle(vehicle).subscribe({
+      next: () => {
+        this.snackBar.open('Vehicle saved successfully!', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['snackbar-success']
+        });
+        this.router.navigate(['/vehicles']);
+      },
+      error: () => {
+        this.snackBar.open('Failed to save vehicle. Please try again.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      }
+    });
   }
 
   cancelBtn() {

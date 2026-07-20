@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
+import { AuthenticationService } from '../../components/_common/_service/authentication.service';
 
 @Component({
   selector: 'app-default-header',
@@ -32,7 +33,7 @@ export class DefaultHeaderComponent implements AfterViewInit {
   @ViewChild('searchInput') searchInput!: ElementRef;
   @ViewChild('searchButton', { static: false }) searchButton!: ElementRef;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
+  constructor(private router: Router, private cdr: ChangeDetectorRef, private authenticationService: AuthenticationService) {}
 
   ngAfterViewInit() {
     if (this.searchButton) {
@@ -58,8 +59,8 @@ export class DefaultHeaderComponent implements AfterViewInit {
     }
     this.isSearchExpanded = false;
   }
-  gotoLogIn(){
-    this.router.navigate(['/login']);
+  logout(){
+    this.authenticationService.logout();
   }
   toggleSidebar() {
     this.sidebarToggle.emit();

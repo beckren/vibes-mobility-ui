@@ -7,16 +7,13 @@ export interface RentalListsItem {
   car: string;
   employee: string;
   checkOutPrice: number;
-  checkOut: Date;
-  checkIn: Date;
+  checkOut: Date | null;
+  checkIn: Date | null;
   status: string;
 }
 
 export class RentalListsDataSource extends DataSource<RentalListsItem> {
-  data: RentalListsItem[] = [
-    { rentalId: '1', customer: 'John Doe', car: 'Toyota', employee: 'Alice', checkOutPrice: 150, checkOut: new Date(), checkIn: new Date(), status: 'Active' },
-    { rentalId: '2', customer: 'Jane Smith', car: 'Honda', employee: 'Bob', checkOutPrice: 200, checkOut: new Date(), checkIn: new Date(), status: 'Completed' },
-  ];
+  data: RentalListsItem[] = [];
 
   connect(): Observable<RentalListsItem[]> {
     return of(this.data);

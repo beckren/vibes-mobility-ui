@@ -12,49 +12,8 @@ export interface VehicleRentalHistoryItem {
   status: string;
 }
 
-const rentalHistory: VehicleRentalHistoryItem[] = [
-  {
-    name: 'Ben',
-    lastName: 'Dough',
-    carPlate: 'srgrwey',
-    rentalId: 'adgdsfhs',
-    checkOut: '21/09/2023',
-    checkIn: '25/09/2023',
-    status: 'Completed',
-  },
-  {
-    name: 'Ben',
-    lastName: 'Dough',
-    carPlate: 'srgrwey',
-    rentalId: 'adgdsfhs',
-    checkOut: '21/09/2023',
-    checkIn: '25/09/2023',
-    status: 'Active',
-  },
-  {
-    name: 'Ben',
-    lastName: 'Dough',
-    carPlate: 'srgrwey',
-    rentalId: 'adgdsfhs',
-    checkOut: '21/09/2023',
-    checkIn: '25/09/2023',
-    status: 'Active',
-  },
-  {
-    name: 'Ben',
-    lastName: 'Dough',
-    carPlate: 'srgrwey',
-    rentalId: 'adgdsfhs',
-    checkOut: '21/09/2023',
-    checkIn: '25/09/2023',
-    status: 'Active',
-  },
-];
-
 export class VehicleRentalHistoryDataSource extends MatTableDataSource<VehicleRentalHistoryItem> {
   constructor() {
-    super(rentalHistory);
+    super([]);
   }
-
-
 }

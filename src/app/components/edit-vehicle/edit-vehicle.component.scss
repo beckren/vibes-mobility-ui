@@ -2,9 +2,7 @@
   padding: 20px;
   background: transparent;
   border-radius: 10px;
-
-  max-height: 80vh;
-  overflow-y: hidden !important;
+  overflow-y: auto;
 }
 :host {
   display: block;
@@ -59,6 +57,7 @@ td {
 .buttons-container {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -78,11 +77,9 @@ input {
 }
 .side-btns {
   width: auto;
-  margin-top: 10px;
   color: white !important;
   background: var(--button-2) !important;
   border-radius: 10px;
-  margin-left: 10px;
 }
 
 .damage-history {
@@ -95,6 +92,30 @@ input {
 mat-card {
   box-shadow: none;
   margin: 0px;
+}
+
+mat-horizontal-stepper {
+  background: transparent !important;
+}
+
+::ng-deep .mat-horizontal-stepper-header-container {
+  background: transparent !important;
+}
+
+::ng-deep .mat-horizontal-content-container {
+  background: transparent !important;
+}
+
+::ng-deep .mat-step-label {
+  color: white !important;
+}
+
+::ng-deep .mat-step-icon {
+  background-color: var(--color-gradient-mid, #555) !important;
+}
+
+::ng-deep .mat-step-icon-selected {
+  background-color: var(--button-1, #1976d2) !important;
 }
 .damage-table {
   width: 100%;

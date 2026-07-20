@@ -8,66 +8,81 @@
 </div>
 <mat-card class="form-container">
   <h3 class="subtitle">Available Vehicles</h3>
-  <input
-    matInput
-    placeholder="Search"
-    (input)="applyFilter($event)"
-    class="search-input"
-  />
-  <div class="table-container">
-    <table
-      mat-table
-      [dataSource]="dataSource"
-      matSort
-      class="mat-elevation-z8 desktop-table"
-    >
-      <ng-container matColumnDef="carId">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Car ID</th>
-        <td mat-cell *matCellDef="let element">{{ element.carId }}</td>
-      </ng-container>
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading vehicles...</p>
+  </div>
 
-      <ng-container matColumnDef="plate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Plate</th>
-        <td mat-cell *matCellDef="let element">{{ element.plate }}</td>
-      </ng-container>
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" (click)="loadVehicles()">
+      Retry
+    </button>
+  </div>
 
-      <ng-container matColumnDef="model">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Model</th>
-        <td mat-cell *matCellDef="let element">{{ element.model }}</td>
-      </ng-container>
+  <ng-container *ngIf="!isLoading && !errorMessage">
+    <input
+      matInput
+      placeholder="Search"
+      (input)="applyFilter($event)"
+      class="search-input"
+    />
+    <div class="table-container">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        class="mat-elevation-z8 desktop-table"
+      >
+        <ng-container matColumnDef="carId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Car ID</th>
+          <td mat-cell *matCellDef="let element">{{ element.carId }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="color">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Color</th>
-        <td mat-cell *matCellDef="let element">{{ element.color }}</td>
-      </ng-container>
+        <ng-container matColumnDef="plate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Plate</th>
+          <td mat-cell *matCellDef="let element">{{ element.plate }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let element">
-          <span class="status" [ngClass]="element.status.toLowerCase()">
-            {{ element.status }}
-          </span>
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="model">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Model</th>
+          <td mat-cell *matCellDef="let element">{{ element.model }}</td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
+        <ng-container matColumnDef="color">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Color</th>
+          <td mat-cell *matCellDef="let element">{{ element.color }}</td>
+        </ng-container>
 
-    <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
-      <div class="card">
-        <div class="card-header">
-          <h3>{{ element.model }} ({{ element.status }})</h3>
-          <p class="car-id">{{ element.carId }}</p>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let element">
+            <span class="status" [ngClass]="element.status.toLowerCase()">
+              {{ element.status }}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
+        <div class="card">
+          <div class="card-header">
+            <h3>{{ element.model }} ({{ element.status }})</h3>
+            <p class="car-id">{{ element.carId }}</p>
+          </div>
+          <p>Plate: {{ element.plate }}</p>
+          <p>Color: {{ element.color }}</p>
+          <p>
+            <span class="status" [ngClass]="element.status.toLowerCase()">
+              {{ element.status }}
+            </span>
+          </p>
         </div>
-        <p>Plate: {{ element.plate }}</p>
-        <p>Color: {{ element.color }}</p>
-        <p>
-          <span class="status" [ngClass]="element.status.toLowerCase()">
-            {{ element.status }}
-          </span>
-        </p>
       </div>
     </div>
-  </div>
+  </ng-container>
 </mat-card>

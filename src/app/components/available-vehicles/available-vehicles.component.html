@@ -1,4 +1,19 @@
 <h2 class="title">Available Vehicles</h2>
+
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading available vehicles...</p>
+</div>
+
+<div *ngIf="errorMessage && !isLoading" class="error-container">
+  <mat-icon color="warn">error</mat-icon>
+  <p>{{ errorMessage }}</p>
+  <button mat-raised-button color="primary" (click)="refreshVehicles()">
+    Retry
+  </button>
+</div>
+
+<ng-container *ngIf="!isLoading && !errorMessage">
   <input
     matInput
     placeholder="Search"
@@ -47,6 +62,11 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 
+  <div *ngIf="dataSource.data.length === 0" class="empty-state">
+    <mat-icon>directions_car</mat-icon>
+    <p>No available vehicles found</p>
+  </div>
+
   <div class="mobile-cards" *ngFor="let element of dataSource.filteredData">
     <div class="card">
       <div class="card-header">
@@ -63,3 +83,4 @@
     </div>
   </div>
 </div>
+</ng-container>

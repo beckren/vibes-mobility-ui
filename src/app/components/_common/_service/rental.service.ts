@@ -16,7 +16,7 @@ import {
   AdditionalFeeRecord
 } from './checkout.service';
 
-// Search parameters for GET /checkout
+// Search parameters for GET /rental
 export interface RentalSearchParams {
   rentalId?: string;
   firstName?: string;
@@ -62,7 +62,7 @@ export class RentalService {
         httpParams = httpParams.set(key, value);
       }
     }
-    return this.http.get<RentalSearchResult[]>(`${environment.apiUrl}/checkout`, { params: httpParams });
+    return this.http.get<RentalSearchResult[]>(`${environment.apiUrl}/rental`, { params: httpParams });
   }
 
   getRentalById(id: string): Observable<RentalDetail> {

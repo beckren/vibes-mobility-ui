@@ -1,12 +1,13 @@
 import { AfterViewInit, Component, ViewChild, OnInit } from '@angular/core';
-import { MatTableModule, MatTableDataSource, MatTable } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { AvailVehiclesTableDataSource, AvailVehiclesTableItem } from './available-vehicles-datasource';
+import { AvailVehiclesTableItem } from './available-vehicles-datasource';
+import { Vehicle, VehicleService } from '../_common/_service/vehicle.service';
 
 
 @Component({
@@ -21,27 +22,22 @@ import { AvailVehiclesTableDataSource, AvailVehiclesTableItem } from './availabl
     MatSortModule,
     MatButtonModule,
     MatIconModule,
-    MatTable,
-    
+    MatProgressSpinnerModule,
   ]
 })
 
-export class AvailableVehiclesComponent implements OnInit {
+export class AvailableVehiclesComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<AvailVehiclesTableItem>();
   displayedColumns: string[] = ['carId', 'plate', 'model', 'color', 'status'];
+  isLoading = true;
+  errorMessage = '';
 
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private router: Router) { }
+  constructor(private vehicleService: VehicleService) { }
 
   ngOnInit(): void {
-    const vehiclesData: AvailVehiclesTableItem[] = [
-      { carId: 'KARTEX1234', plate: 'ABC-123', model: 'SUV', color: 'Black', status: 'Active' },
-      { carId: 'KARTEX5678', plate: 'XYZ-456', model: 'Sedan', color: 'White', status: 'Active' },
-      { carId: 'KARTEX9101', plate: 'DEF-789', model: 'Hatchback', color: 'Red', status: 'Active' },
-      { carId: 'KARTEX1122', plate: 'GHI-101', model: 'Truck', color: 'Blue', status: 'Active' }
-    ];
-    this.dataSource.data = vehiclesData;
+    this.loadVehicles();
   }
 
   ngAfterViewInit() {
@@ -51,5 +47,32 @@ export class AvailableVehiclesComponent implements OnInit {
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  loadVehicles(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.vehicleService.getAllVehicles().subscribe({
+      next: (vehicles: Vehicle[]) => {
+        this.dataSource.data = vehicles.map(vehicle => ({
+          carId: vehicle.mva,
+          plate: vehicle.licensePlate,
+          model: vehicle.model || vehicle.carModel || vehicle.carGroup,
+          color: vehicle.color,
+          status: vehicle.status
+        }));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load available vehicles', err);
+        this.errorMessage = 'Failed to load available vehicles. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  refreshVehicles(): void {
+    this.loadVehicles();
   }
 }
