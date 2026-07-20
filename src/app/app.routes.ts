@@ -4,31 +4,6 @@ import { AuthGuard } from './components/_common/auth.guard';
 
 export const routes: Routes = [
   {
-    path: 'login',
-    loadComponent: () =>
-      import('./components/login/login.component').then(
-        (m) => m.LoginComponent
-      ),
-    title: 'Login',
-  },
-  {
-    path: 'forgot-password',
-    loadComponent: () =>
-      import('./components/forgot-password/forgot-password.component').then(
-        (m) => m.ForgotPasswordComponent
-      ),
-    title: 'Forgot Password',
-  },
-  {
-    path: 'reset-password',
-    loadComponent: () =>
-      import('./components/reset-password/reset-password.component').then(
-        (m) => m.ResetPasswordComponent
-      ),
-    title: 'Reset Password',
-  },
-
-  {
     path: '',
     loadComponent: () =>
       import('./layouts/default-layout/default-layout.component').then(
@@ -78,7 +53,7 @@ export const routes: Routes = [
         title: 'Vehicle Registration',
       },
       {
-        path: 'vehicle-rental-history',
+        path: 'vehicle-rental-history/:id',
         loadComponent: () =>
           import(
             './components/vehicle-rental-history/vehicle-rental-history.component'
@@ -86,12 +61,20 @@ export const routes: Routes = [
         title: 'Vehicle Rental History',
       },
       {
-        path: 'vehicle-maintenance-history',
+        path: 'vehicle-maintenance-history/:id',
         loadComponent: () =>
           import(
             './components/vehicle-maintenance-history/vehicle-maintenance-history.component'
           ).then((m) => m.VehicleMaintenanceHistoryComponent),
         title: 'Vehicle Maintenance History',
+      },
+      {
+        path: 'vehicle-damage-history/:id',
+        loadComponent: () =>
+          import(
+            './components/vehicle-damage-history/vehicle-damage-history.component'
+          ).then((m) => m.VehicleDamageHistoryComponent),
+        title: 'Vehicle Damage History',
       },
       {
         path: 'check-out',
@@ -103,6 +86,14 @@ export const routes: Routes = [
       },
       {
         path: 'check-in',
+        loadComponent: () =>
+          import('./components/check-in/check-in.component').then(
+            (m) => m.CheckInComponent
+          ),
+        title: 'Check In',
+      },
+      {
+        path: 'check-in/:rentalId',
         loadComponent: () =>
           import('./components/check-in/check-in.component').then(
             (m) => m.CheckInComponent

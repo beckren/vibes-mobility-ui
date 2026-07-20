@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
 import { AuthenticationService } from '../_common/_service/authentication.service';
 import { environment } from '../../../environments/environments';
@@ -8,7 +8,6 @@ import { environment } from '../../../environments/environments';
 @Injectable({ providedIn: 'root' })
 export class AuthGuard {
     constructor(
-        private router: Router,
         private authenticationService: AuthenticationService
     ) { }
 
@@ -16,14 +15,12 @@ export class AuthGuard {
         if (environment.devBypassAuth) {
             return true;
         }
-        const user = this.authenticationService.userValue;
-        if (user) {
-            // authorised so return true
+        if (this.authenticationService.isAuthenticated) {
             return true;
         }
 
-        // not logged in so redirect to login page with the return url
-        this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+        // not authenticated -> redirect to Keycloak login and return to the requested url
+        this.authenticationService.login(window.location.origin + state.url);
         return false;
     }
 }
