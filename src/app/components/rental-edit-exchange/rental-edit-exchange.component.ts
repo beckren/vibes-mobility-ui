@@ -29,6 +29,7 @@ import * as _moment from 'moment';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subject, merge } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
 import { UploadOptionsComponent } from '../upload-options.component';
 import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/_service/price.service';
@@ -113,6 +114,7 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
   // State flags
   rentalLoaded = false;
   loadedRentalId = '';
+  activeStep = 0;
   driverStepVisible = false;
   isMobile = false;
   canCalculate = false;
@@ -190,7 +192,8 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private feeService: FeeService,
     private vehicleService: VehicleService,
-    private rentalService: RentalService
+    private rentalService: RentalService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -259,6 +262,12 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
       this.pricingFormGroup.get('grossAmount')!.valueChanges,
       this.paymentFormGroup.get('amountOnHold')!.valueChanges
     ).pipe(takeUntil(this.destroy$)).subscribe(() => this.updateCheckoutGrossAmount());
+
+    const rentalId = this.route.snapshot.queryParamMap.get('rentalId');
+    if (rentalId) {
+      this.searchForm.patchValue({ rentalId });
+      this.loadRental(rentalId);
+    }
   }
 
   ngOnDestroy() {
@@ -461,7 +470,11 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
   }
 
   selectRental(row: RentalSearchResult) {
-    this.rentalService.getRentalById(row.rentalId).subscribe({
+    this.loadRental(row.rentalId);
+  }
+
+  private loadRental(rentalId: string): void {
+    this.rentalService.getRentalById(rentalId).subscribe({
       next: (detail) => {
         this.populateFromRentalDetail(detail);
         this.rentalLoaded = true;
@@ -471,8 +484,7 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
           verticalPosition: 'top',
           horizontalPosition: 'center'
         });
-        // Move to next step
-        this.stepper.next();
+        this.activeStep = 1;
       },
       error: (err) => {
         this.snackBar.open('Failed to load rental: ' + (err.error?.message || err.message), 'Close', { duration: 5000 });

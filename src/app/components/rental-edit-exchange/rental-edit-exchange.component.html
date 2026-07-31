@@ -1,7 +1,12 @@
 <h2 class="title">Edit Rental</h2>
 
 <div class="container">
-  <mat-horizontal-stepper [linear]="false" #stepper headerPosition="bottom">
+  <mat-horizontal-stepper
+    [linear]="false"
+    [selectedIndex]="activeStep"
+    #stepper
+    headerPosition="bottom"
+  >
 
     <!-- Step 1: Search -->
     <mat-step label="Search">

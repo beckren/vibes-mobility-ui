@@ -20,6 +20,12 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import {
+  RentalSearchResult,
+  RentalService,
+} from '../_common/_service/rental.service';
+import { getManifestStatus } from '../_common/fleet-dashboard.util';
 
 export interface Rental {
   rentalId: string;
@@ -53,6 +59,7 @@ export interface Rental {
     MatIconModule,
     MatCardModule,
     MatButtonToggleModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './manifest-menu.component.html',
   styleUrls: ['./manifest-menu.component.scss'],
@@ -78,6 +85,8 @@ export class ManifestMenuComponent implements OnInit, AfterViewInit {
 
   dataSource = new MatTableDataSource<Rental>();
   allRentals: Rental[] = [];
+  isLoading = true;
+  errorMessage = '';
 
   filterStartDate: Date | null = null;
   filterEndDate: Date | null = null;
@@ -85,70 +94,47 @@ export class ManifestMenuComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private rentalService: RentalService
+  ) {}
 
   ngOnInit(): void {
-    const now = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(now.getDate() + 1);
+    this.loadRentals();
+  }
 
-    // Initialize with sample data
-    this.allRentals = [
-      {
-        rentalId: '1',
-        customer: 'John Doe',
-        carGroup: 'A',
-        carModel: 'Toyota Corolla',
-        carLicense: 'ABC123',
-        phoneNumber: '+355692223344',
-        email: 'john@example.com',
-        checkOutPrice: 150,
-        checkOut: now,
-        checkIn: tomorrow,
-        status: 'Upcoming',
-      },
-      {
-        rentalId: '2',
-        customer: 'Jane Smith',
-        carGroup: 'B',
-        carModel: 'Honda Civic',
-        carLicense: 'DEF456',
-        phoneNumber: '+355693334455',
-        email: 'jane@example.com',
-        checkOutPrice: 200,
-        checkOut: now,
-        checkIn: tomorrow,
-        status: 'Returning',
-      },
-      {
-        rentalId: '3',
-        customer: 'Emily Brown',
-        carGroup: 'C',
-        carModel: 'Ford Focus',
-        carLicense: 'GHI789',
-        phoneNumber: '+355694445566',
-        email: 'emily@example.com',
-        checkOutPrice: 180,
-        checkOut: now,
-        checkIn: tomorrow,
-        status: 'On Rent',
-      },
-      {
-        rentalId: '4',
-        customer: 'Mark Johnson',
-        carGroup: 'D',
-        carModel: 'BMW 3 Series',
-        carLicense: 'JKL012',
-        phoneNumber: '+355695556677',
-        email: 'mark@example.com',
-        checkOutPrice: 300,
-        checkOut: now,
-        checkIn: tomorrow,
-        status: 'Closed',
-      },
-    ];
+  loadRentals(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    this.updateTable();
+    this.rentalService.searchRentals({}).subscribe({
+      next: rentals => {
+        this.allRentals = rentals.map(rental => this.toManifestRental(rental));
+        this.updateTable();
+        this.isLoading = false;
+      },
+      error: error => {
+        console.error('Failed to load manifest rentals', error);
+        this.errorMessage = 'Failed to load rentals. Please try again.';
+        this.isLoading = false;
+      },
+    });
+  }
+
+  private toManifestRental(rental: RentalSearchResult): Rental {
+    return {
+      rentalId: rental.rentalId,
+      customer: `${rental.firstName} ${rental.lastName}`.trim(),
+      carGroup: rental.carGroup,
+      carModel: rental.carModel,
+      carLicense: rental.carLicense,
+      phoneNumber: rental.phoneNumber,
+      email: rental.email,
+      checkOutPrice: Number(rental.grossAmount),
+      checkOut: new Date(rental.checkoutDate),
+      checkIn: new Date(rental.checkinDate),
+      status: getManifestStatus(rental),
+    };
   }
 
   ngAfterViewInit(): void {
@@ -246,8 +232,10 @@ applyDateFilter(): void {
     this.updateTable();
   }
 
-  editRental(): void {
-    this.router.navigate(['/check-out']);
+  editRental(rental: Rental): void {
+    this.router.navigate(['/rental-edit-exchange'], {
+      queryParams: { rentalId: rental.rentalId },
+    });
   }
 printTable(): void {
   window.print();

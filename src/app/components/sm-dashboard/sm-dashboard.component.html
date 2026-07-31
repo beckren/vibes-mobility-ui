@@ -1,5 +1,16 @@
 <h2 class="dashboard-title">Station Manager Dashboard</h2>
 
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading dashboard data...</p>
+</div>
+
+<div *ngIf="errorMessage && !isLoading" class="error-container">
+  <p>{{ errorMessage }}</p>
+  <button type="button" (click)="loadDashboard()">Retry</button>
+</div>
+
+<ng-container *ngIf="!isLoading && !errorMessage">
 <div class="filter-tabs stats-row">
   <button *ngFor="let s of stats" class="stat-btn" (click)="onStatClick(s)">
     <div class="stat-label">{{ s.label }}</div>
@@ -38,12 +49,12 @@
     </ng-container>
 
     <ng-container *ngFor="let day of displayedDays" [matColumnDef]="day">
-      <th mat-header-cell *matHeaderCellDef>{{ day }}</th>
+      <th mat-header-cell *matHeaderCellDef>{{ formatDay(day) }}</th>
       <td
         mat-cell
         *matCellDef="let row"
         (click)="onCellClick(row.category, day)"
-        [class.clickable]="isClickable(row.category)"
+        [class.clickable]="isClickable()"
       >
         {{ row[day] }}
       </td>
@@ -53,3 +64,4 @@
     <tr mat-row *matRowDef="let r; columns: displayedColumns"></tr>
   </table>
 </div>
+</ng-container>

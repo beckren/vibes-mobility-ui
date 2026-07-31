@@ -35,6 +35,10 @@ export interface RentalSearchResult {
   lastName: string;
   carGroup: string;
   mva: string;
+  carModel: string;
+  carLicense: string;
+  phoneNumber: string;
+  email: string;
   checkoutDate: string;
   checkinDate: string;
   status: string;
