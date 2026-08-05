@@ -1,0 +1,49 @@
+.title {
+  margin: 16px 0;
+}
+
+.section-card {
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.current-role {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .label {
+    font-weight: 500;
+  }
+}
+
+form {
+  margin-top: 12px;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+}
+.status-approved {
+  background-color: #d4edda;
+}
+.status-rejected {
+  background-color: #f8d7da;
+}
+.status-cancelled {
+  background-color: #e2e3e5;
+}

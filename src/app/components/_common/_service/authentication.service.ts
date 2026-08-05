@@ -11,6 +11,18 @@ export class AuthenticationService {
         return this.keycloak.authenticated ?? false;
     }
 
+    public get permissions(): string[] {
+        const claim = (this.keycloak.tokenParsed as any)?.Permission;
+        if (Array.isArray(claim)) {
+            return claim;
+        }
+        return typeof claim === 'string' ? [claim] : [];
+    }
+
+    public hasPermission(permission: string): boolean {
+        return this.permissions.includes(permission);
+    }
+
     public get userValue(): User | null {
         if (!this.keycloak.authenticated) {
             return null;

@@ -1,0 +1,49 @@
+.title {
+  margin: 16px 0;
+}
+
+.request-card {
+  max-width: 900px;
+  margin: 0 auto 16px;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .email {
+    display: block;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.85rem;
+  }
+}
+
+.justification {
+  margin: 12px 0 4px;
+}
+
+.requested-at {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.full-width {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  margin-top: 32px;
+}

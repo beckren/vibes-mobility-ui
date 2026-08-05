@@ -16,7 +16,7 @@
     <div class="menu-container">
       <ul class="menu-list">
         <li
-          *ngFor="let item of menuItems"
+          *ngFor="let item of visibleMenuItems"
           [class.active]="router.url === item.route"
           (click)="navigate(item.route)"
         >

@@ -9,6 +9,14 @@ import { DefaultHeaderComponent } from '../default-header/default-header.compone
 import { RouterModule } from '@angular/router';
 import { BackButtonComponent } from '../../components/back-button.component';
 import { ViewChild, ElementRef, HostListener } from '@angular/core';
+import { AuthenticationService } from '../../components/_common/_service/authentication.service';
+
+interface MenuItem {
+  label: string;
+  route: string;
+  icon: string;
+  permission?: string;
+}
 
 @Component({
   selector: 'app-default-layout',
@@ -43,13 +51,26 @@ export class DefaultLayoutComponent {
     { label: 'Cars', icon: 'directions_car', route: '/vehicles' },
     { label: 'Users', route: '/users-table', icon: 'group' },
     { label: 'Update Fees', route: '/update-fees', icon: 'attach_money' },
+    { label: 'My Role Requests', route: '/my-role-requests', icon: 'badge' },
+    {
+      label: 'Role Approvals',
+      route: '/role-request-approvals',
+      icon: 'how_to_reg',
+      permission: 'READ_ROLE_REQUEST',
+    },
     { label: 'Help', route: '/help-page', icon: 'help_outline' },
   ];
+
+  get visibleMenuItems(): MenuItem[] {
+    return this.menuItems.filter(
+      (item) => !item.permission || this.authenticationService.hasPermission(item.permission)
+    );
+  }
   @ViewChild('sidenav', { static: true }) sidenav!: MatSidenav;
   @ViewChild('sidenav', { read: ElementRef }) sidenavRef!: ElementRef;
   @ViewChild('header', { read: ElementRef }) headerRef!: ElementRef;
 
-  constructor(public router: Router, private cdr: ChangeDetectorRef) {
+  constructor(public router: Router, private cdr: ChangeDetectorRef, private authenticationService: AuthenticationService) {
     console.log('✅ DefaultLayoutComponent Loaded');
   }
   @HostListener('document:click', ['$event'])
