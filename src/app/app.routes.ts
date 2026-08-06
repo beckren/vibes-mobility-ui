@@ -109,28 +109,12 @@ export const routes: Routes = [
         title: 'Users',
       },
       {
-        path: 'add-users',
-        loadComponent: () =>
-          import('./components/add-user/add-user.component').then(
-            (m) => m.AddUserComponent
-          ),
-        title: 'Add Users',
-      },
-      {
         path: 'rental-lists',
         loadComponent: () =>
           import('./components/rental-lists/rental-lists.component').then(
             (m) => m.RentalListsComponent
           ),
         title: 'Rental Lists',
-      },
-      {
-        path: 'edit-user',
-        loadComponent: () =>
-          import('./components/edit-user/edit-user.component').then(
-            (m) => m.EditUserComponent
-          ),
-        title: 'Edit User',
       },
       {
         path: 'user-profile',

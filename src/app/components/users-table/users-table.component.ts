@@ -2,9 +2,6 @@ import { AfterViewInit, Component, OnInit, ViewChild, OnDestroy } from '@angular
 import { MatTableModule, MatTable, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../_common/_service/user.service';
 import { User } from '../_common/_model/user';
@@ -19,8 +16,6 @@ import { Observable, Subscription } from 'rxjs';
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
-    MatButtonModule,
-    MatIconModule,
     CommonModule
   ],
 })
@@ -30,7 +25,7 @@ export class UsersTableComponent implements OnInit, AfterViewInit, OnDestroy {
   users: User[] = [];
   private subscription: Subscription = new Subscription();
 
-  constructor(private router: Router, private userService: UserService) {
+  constructor(private userService: UserService) {
     this.users$ = this.userService.getUsers();
   }
 
@@ -49,20 +44,12 @@ export class UsersTableComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  editUser(user: User) {
-    this.router.navigate(['/edit-user'], { state: { user } });
-  }
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatTable) table!: MatTable<User>;
   dataSource = new MatTableDataSource<User>(); // Create a MatTableDataSource instance
 
-  displayedColumns = ['firstname', 'lastname', 'email', 'roles', 'actions'];
-
-  gotoNewUser() {
-    this.router.navigate(['/add-users']);
-  }
+  displayedColumns = ['firstname', 'lastname', 'email'];
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;

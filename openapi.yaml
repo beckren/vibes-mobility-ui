@@ -117,9 +117,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UserRecord'
-    post:
+    put:
       tags: [user]
-      summary: Create user
+      summary: Update the current user's profile (firstname/lastname/email; no password)
       requestBody:
         required: true
         content:
@@ -127,8 +127,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UserRecord'
       responses:
-        '201':
-          description: User created
+        '200':
+          description: User updated
         '400':
           description: Bad request
   /user/{id}:
@@ -659,15 +659,9 @@ components:
           type: string
         lastname:
           type: string
-        password:
-          type: string
         email:
           type: string
-        roles:
-          type: array
-          items:
-            type: string
-      required: [firstname, lastname, password, email, roles]
+      required: [firstname, lastname, email]
     CheckoutRecord:
       type: object
       properties:
