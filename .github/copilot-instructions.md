@@ -23,13 +23,11 @@ ng generate component components/<name> --standalone
 - `components/` – Feature-Komponenten (eine Ordner pro Feature, z.B. `check-out/`, `vehicles-table/`, `dash/`)
 - `components/_common/` – **geteilter Kern-Code**:
   - `_service/` – **kanonischer Ort für alle Domain-Services** (siehe unten)
-  - `_interceptor/` – aktiver HTTP-Interceptor
   - `_model/` – geteilte Interfaces/Modelle (`user.ts`, `alert.ts`)
   - `auth.guard.ts` – aktiver Route-Guard
 - `layouts/` – `default-layout`, `default-header` (Shell um die geschützten Routen)
 - `store/auth/` – NgRx auth-Slice (`actions`, `reducer`, `selectors`)
-- `services/` – **teilweise veraltet** (siehe „Stale/Duplicate Files")
-- `core/interceptors/` – **veraltet/ungenutzt** (siehe unten)
+- `services/` – **nur noch `invoice.service.ts`** (von `check-out` genutzt; übrige Alt-Duplikate wurden entfernt)
 - `shared/constants/` – statische Daten (z.B. `countries.ts`)
 - `environments/environments.ts` – `apiUrl`, `production`, `devBypassAuth`
 
@@ -72,19 +70,24 @@ ng generate component components/<name> --standalone
   Hier werden Store, Effects, Router, HttpClient + Interceptor und Animations provided.
 - `app.config.ts` existiert ebenfalls, aber die **aktive** Provider-Liste steht in `main.ts`.
 
-## Stale / Duplicate Files (nicht bearbeiten, kandidaten zum Löschen)
+## Stale / Duplicate Files
 
-Es existieren mehrere konkurrierende Implementierungen. **Nur die kanonische Variante ist verdrahtet** – die Duplikate NICHT ändern, sondern bei Gelegenheit entfernen:
+Die früheren Alt-Duplikate wurden am 2026-08-06 entfernt (`services/auth.service.ts`,
+`services/api.service.ts`, `services/fee.service.ts`, `core/interceptors/auth.interceptor.ts`,
+`components/_common/_service/auth.guard.ts`). Kanonische Quelle ist ausschließlich
+`components/_common/_service/*` bzw. `components/_common/_interceptor/` und
+`components/_common/auth.guard.ts`.
 
-| Concern      | Kanonisch (in Benutzung)                                   | Veraltet / ungenutzt                          |
-|--------------|------------------------------------------------------------|-----------------------------------------------|
-| Auth-Service | `components/_common/_service/authentication.service.ts`    | `services/auth.service.ts`                    |
-| Interceptor  | `components/_common/_interceptor/authentication.interceptor.ts` | `core/interceptors/auth.interceptor.ts`  |
-| Auth-Guard   | `components/_common/auth.guard.ts`                         | `components/_common/_service/auth.guard.ts`   |
-| Fee-Service  | `components/_common/_service/fee.service.ts`               | `services/fee.service.ts`                     |
-| Api-Service  | domänenspezifische `_service/*`                            | `services/api.service.ts` (Stub)              |
+| Concern      | Kanonisch (in Benutzung)                                        |
+|--------------|-----------------------------------------------------------------|
+| Auth-Service | `components/_common/_service/authentication.service.ts`         |
+| Interceptor  | `includeBearerTokenInterceptor` (keycloak-angular, in `main.ts`) |
+| Auth-Guard   | `components/_common/auth.guard.ts`                              |
+| Fee-Service  | `components/_common/_service/fee.service.ts`                    |
 
-→ **TODO (separat):** Duplikate löschen und Imports vereinheitlichen, damit nur `components/_common/_service/` als Service-Quelle bleibt. Nicht ungefragt im Rahmen anderer Aufgaben mitmachen.
+**Verbleibende Altlast:** `services/invoice.service.ts` wird noch von `check-out` importiert
+(es existiert zusätzlich eine ungenutzte Kopie unter `components/_common/_service/invoice.service.ts`).
+Konsolidierung offen – bewusst noch nicht angefasst.
 
 ## Verhaltensrichtlinien
 
