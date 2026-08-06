@@ -45,7 +45,7 @@ import {
   AdditionalFeeRecord
 } from '../_common/_service/checkout.service';
 import { RentalService } from '../_common/_service/rental.service';
-import { InvoiceService, VehicleInfo } from '../../services/invoice.service';
+import { InvoiceService, VehicleInfo } from '../_common/_service/invoice.service';
 import { COUNTRIES } from '../../shared/constants/countries';
 
 const moment = _rollupMoment || _moment;

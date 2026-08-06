@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-  CheckoutPayload,
-  AdditionalFeeRecord
-} from './checkout.service';
+import { CheckoutPayload } from './checkout.service';
 
 export interface VehicleInfo {
   licensePlate?: string;
@@ -11,13 +8,6 @@ export interface VehicleInfo {
   fuel?: string;
   mileage?: string;
   transmission?: string;
-  color?: string;
-}
-
-export interface InvoiceData {
-  payload: CheckoutPayload;
-  vehicle: VehicleInfo;
-  taxRate: number;
 }
 
 @Injectable({
@@ -28,80 +18,15 @@ export class InvoiceService {
   constructor(private snackBar: MatSnackBar) {}
 
   /**
-   * Generates and prints an invoice in a new window.
+   * Generates and prints an invoice in a new browser window.
    */
-  printInvoice(data: InvoiceData): void {
-    const invoiceHtml = this.generateInvoiceHtml(data);
+  printInvoice(payload: CheckoutPayload, vehicle: VehicleInfo, taxRate: number = 19): void {
+    const invoiceHtml = this.generateInvoiceHtml(payload, vehicle, taxRate);
     this.openPrintWindow(invoiceHtml);
   }
 
   /**
-   * Generates invoice HTML string from checkout data.
-   */
-  generateInvoiceHtml(data: InvoiceData): string {
-    const { payload, vehicle, taxRate } = data;
-    const customer = payload.customerRecord;
-    const pricing = payload.checkoutPricingRecord;
-    const payment = payload.paymentRecord;
-
-    // Generate invoice number (timestamp-based)
-    const invoiceNumber = `INV-${Date.now()}`;
-    const invoiceDate = this.formatDateGerman(new Date());
-
-    // Calculate rental duration
-    const checkoutDate = new Date(pricing.checkoutDate);
-    const checkinDate = new Date(pricing.expectedCheckinDate);
-    const durationMs = checkinDate.getTime() - checkoutDate.getTime();
-    const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
-
-    // Build additional fees HTML
-    const { html: additionalFeesHtml, total: additionalFeesTotal } = this.buildAdditionalFeesHtml(pricing.additionalFees);
-
-    // Build discount HTML
-    const { html: discountHtml, amount: discountAmount } = this.buildDiscountHtml(pricing.discount, pricing.grossListSalePrice);
-
-    // Build additional drivers HTML
-    const additionalDriversHtml = this.buildAdditionalDriversHtml(payload.additionalDriverRecords);
-
-    const netAmount = parseFloat(pricing.targetSalePrice || '0');
-    const grossAmount = parseFloat(pricing.grossListSalePrice || '0');
-    const taxAmount = grossAmount - netAmount;
-
-    return `
-      <!DOCTYPE html>
-      <html lang="de">
-      <head>
-        <meta charset="UTF-8">
-        <title>Rechnung ${invoiceNumber}</title>
-        <style>
-          ${this.getInvoiceStyles()}
-        </style>
-      </head>
-      <body>
-        <div class="invoice-container">
-          ${this.buildHeaderHtml(invoiceNumber, invoiceDate, payload.mva)}
-          ${this.buildAddressesHtml(customer, pricing, durationDays)}
-          ${this.buildVehicleInfoHtml(pricing.carGroupName, vehicle)}
-          ${additionalDriversHtml}
-          ${this.buildServicesHtml(pricing.carGroupName, durationDays, netAmount, additionalFeesTotal, additionalFeesHtml, discountHtml)}
-          ${this.buildTotalsHtml(netAmount, taxRate, taxAmount, grossAmount)}
-          ${this.buildPaymentInfoHtml(payment)}
-          ${customer.customerNote ? this.buildNotesHtml(customer.customerNote) : ''}
-          ${this.buildFooterHtml()}
-        </div>
-
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        </script>
-      </body>
-      </html>
-    `;
-  }
-
-  /**
-   * Opens a new window with the invoice HTML and triggers print.
+   * Opens a new browser window with the invoice HTML and triggers print dialog.
    */
   private openPrintWindow(html: string): void {
     const printWindow = window.open('', '_blank');
@@ -119,89 +44,146 @@ export class InvoiceService {
   }
 
   /**
-   * Formats a date to German locale string (DD.MM.YYYY).
+   * Generates the complete invoice HTML document.
    */
-  formatDateGerman(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  }
+  generateInvoiceHtml(payload: CheckoutPayload, vehicle: VehicleInfo, taxRate: number): string {
+    const customer = payload.customerRecord;
+    const pricing = payload.checkoutPricingRecord;
+    const payment = payload.paymentRecord;
 
-  /**
-   * Formats a datetime to German locale string (DD.MM.YYYY HH:mm).
-   */
-  formatDateTimeGerman(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
-      ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  }
+    const invoiceNumber = `INV-${Date.now()}`;
+    const invoiceDate = this.formatDateGerman(new Date());
 
-  /**
-   * Formats a camelCase or PascalCase string by inserting spaces before uppercase letters.
-   */
-  formatFeeName(name: string): string {
-    if (!name) return '';
-    return name.replace(/([a-z])([A-Z])/g, '$1 $2');
-  }
+    // Calculate rental duration
+    const checkoutDate = new Date(pricing.checkoutDate);
+    const checkinDate = new Date(pricing.expectedCheckinDate);
+    const durationMs = checkinDate.getTime() - checkoutDate.getTime();
+    const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
 
-  private buildAdditionalFeesHtml(additionalFees: AdditionalFeeRecord[] | null | undefined): { html: string; total: number } {
-    let html = '';
-    let total = 0;
-    if (additionalFees && additionalFees.length > 0) {
-      additionalFees.forEach(fee => {
-        const amount = parseFloat(fee.amount) || 0;
-        total += amount;
-        html += `
-          <tr>
-            <td>${this.formatFeeName(fee.name)}</td>
-            <td style="text-align: right;">€${amount.toFixed(2)}</td>
-          </tr>
-        `;
-      });
-    }
-    return { html, total };
-  }
+    // Calculate amounts
+    const { additionalFeesHtml, additionalFeesTotal } = this.buildAdditionalFeesSection(pricing.additionalFees);
+    const { discountHtml, discountAmount } = this.buildDiscountSection(pricing.discount, pricing.grossListSalePrice);
+    const additionalDriversHtml = this.buildAdditionalDriversSection(payload.additionalDriverRecords);
 
-  private buildDiscountHtml(discount: any, grossListSalePrice: string | null | undefined): { html: string; amount: number } {
-    let html = '';
-    let amount = 0;
-    if (discount) {
-      const percentage = parseFloat(discount.percentage) || 0;
-      const grossAmount = parseFloat(grossListSalePrice || '0');
-      amount = (grossAmount * percentage) / 100;
-      html = `
-        <tr class="discount-row">
-          <td>Rabatt (${percentage}%) - ${discount.reason || 'Kein Grund angegeben'}</td>
-          <td style="text-align: right; color: #dc3545;">-€${amount.toFixed(2)}</td>
-        </tr>
-      `;
-    }
-    return { html, amount };
-  }
+    const netAmount = parseFloat(pricing.targetSalePrice || '0');
+    const grossAmount = parseFloat(pricing.grossListSalePrice || '0');
+    const taxAmount = grossAmount - netAmount;
 
-  private buildAdditionalDriversHtml(additionalDriverRecords: any[] | undefined): string {
-    if (!additionalDriverRecords || additionalDriverRecords.length === 0) return '';
     return `
-      <div class="section">
-        <h3>Zusätzliche Fahrer</h3>
-        <table>
-          ${additionalDriverRecords.map((driver, index) => `
-            <tr>
-              <td><strong>Fahrer ${index + 1}:</strong></td>
-              <td>${driver.personRecord.firstName} ${driver.personRecord.lastName}</td>
-            </tr>
-            <tr>
-              <td>Führerschein-Nr.:</td>
-              <td>${driver.driverRecord.licenseNumber}</td>
-            </tr>
-          `).join('')}
-        </table>
-      </div>
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8">
+        <title>Rechnung ${invoiceNumber}</title>
+        ${this.getInvoiceStyles()}
+      </head>
+      <body>
+        <div class="invoice-container">
+          ${this.buildHeader(invoiceNumber, invoiceDate, payload.mva)}
+          ${this.buildAddresses(customer, pricing, durationDays)}
+          ${this.buildVehicleSection(pricing.carGroupName, vehicle)}
+          ${additionalDriversHtml}
+          ${this.buildServicesSection(pricing.carGroupName, durationDays, netAmount, additionalFeesTotal, additionalFeesHtml, discountHtml)}
+          ${this.buildTotalsSection(netAmount, taxRate, taxAmount, grossAmount)}
+          ${this.buildPaymentSection(payment)}
+          ${customer.customerNote ? this.buildNotesSection(customer.customerNote) : ''}
+          ${this.buildFooter()}
+        </div>
+        <script>window.onload = function() { window.print(); };</script>
+      </body>
+      </html>
     `;
   }
 
-  private buildHeaderHtml(invoiceNumber: string, invoiceDate: string, mva: string): string {
+  private getInvoiceStyles(): string {
+    return `
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-size: 12px;
+          line-height: 1.5;
+          color: #333;
+          padding: 20px;
+        }
+        .invoice-container { max-width: 800px; margin: 0 auto; background: #fff; }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          border-bottom: 3px solid #1976d2;
+          padding-bottom: 20px;
+          margin-bottom: 20px;
+        }
+        .company-info h1 { color: #1976d2; font-size: 28px; margin-bottom: 5px; }
+        .company-info p { color: #666; font-size: 11px; }
+        .invoice-details { text-align: right; }
+        .invoice-details h2 { color: #1976d2; font-size: 24px; margin-bottom: 10px; }
+        .invoice-details p { margin: 3px 0; }
+        .invoice-details strong { color: #333; }
+        .addresses { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .address-block { width: 48%; }
+        .address-block h3 {
+          color: #1976d2;
+          font-size: 14px;
+          border-bottom: 1px solid #ddd;
+          padding-bottom: 5px;
+          margin-bottom: 10px;
+        }
+        .section { margin-bottom: 25px; }
+        .section h3 {
+          color: #1976d2;
+          font-size: 14px;
+          border-bottom: 1px solid #ddd;
+          padding-bottom: 5px;
+          margin-bottom: 10px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        table td { padding: 8px 5px; vertical-align: top; }
+        .items-table { margin-top: 10px; }
+        .items-table th {
+          background: #1976d2;
+          color: #fff;
+          padding: 10px;
+          text-align: left;
+        }
+        .items-table th:last-child { text-align: right; }
+        .items-table td { border-bottom: 1px solid #eee; }
+        .items-table tr:hover { background: #f9f9f9; }
+        .totals-table { width: 300px; margin-left: auto; margin-top: 20px; }
+        .totals-table td { padding: 8px 5px; }
+        .totals-table .total-row {
+          font-size: 16px;
+          font-weight: bold;
+          border-top: 2px solid #1976d2;
+          color: #1976d2;
+        }
+        .discount-row td { color: #dc3545; }
+        .footer {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #ddd;
+          text-align: center;
+          color: #666;
+          font-size: 10px;
+        }
+        .payment-info {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 5px;
+          margin-top: 20px;
+        }
+        .payment-info h3 { margin-bottom: 10px; }
+        .vehicle-info { background: #e3f2fd; padding: 15px; border-radius: 5px; }
+        @media print {
+          body { padding: 0; }
+          .invoice-container { max-width: 100%; }
+        }
+      </style>
+    `;
+  }
+
+  private buildHeader(invoiceNumber: string, invoiceDate: string, mva: string): string {
     return `
       <div class="header">
         <div class="company-info">
@@ -221,14 +203,14 @@ export class InvoiceService {
     `;
   }
 
-  private buildAddressesHtml(customer: any, pricing: any, durationDays: number): string {
+  private buildAddresses(customer: any, pricing: any, durationDays: number): string {
     return `
       <div class="addresses">
         <div class="address-block">
           <h3>Rechnungsadresse</h3>
           <p><strong>${customer.personRecord.academicTitle ? customer.personRecord.academicTitle + ' ' : ''}${customer.personRecord.firstName} ${customer.personRecord.lastName}</strong></p>
           ${customer.billingAddressRecord.companyName ? `<p>${customer.billingAddressRecord.companyName}</p>` : ''}
-          <p>${customer.billingAddressRecord.addressline1}}</p>
+          <p>${customer.billingAddressRecord.postalCode} ${customer.billingAddressRecord.addressline1}</p>
           <p>${customer.billingAddressRecord.postalCode} ${customer.billingAddressRecord.city}</p>
           <p>${customer.billingAddressRecord.country}</p>
           <p>E-Mail: ${customer.personRecord.email}</p>
@@ -246,7 +228,7 @@ export class InvoiceService {
     `;
   }
 
-  private buildVehicleInfoHtml(carGroupName: string, vehicle: VehicleInfo): string {
+  private buildVehicleSection(carGroupName: string, vehicle: VehicleInfo): string {
     return `
       <div class="section">
         <h3>Fahrzeuginformationen</h3>
@@ -276,7 +258,77 @@ export class InvoiceService {
     `;
   }
 
-  private buildServicesHtml(carGroupName: string, durationDays: number, netAmount: number, additionalFeesTotal: number, additionalFeesHtml: string, discountHtml: string): string {
+  private buildAdditionalFeesSection(additionalFees: any[] | null | undefined): { additionalFeesHtml: string; additionalFeesTotal: number } {
+    let additionalFeesHtml = '';
+    let additionalFeesTotal = 0;
+
+    if (additionalFees && additionalFees.length > 0) {
+      additionalFees.forEach(fee => {
+        const amount = parseFloat(fee.amount) || 0;
+        additionalFeesTotal += amount;
+        additionalFeesHtml += `
+          <tr>
+            <td>${this.formatFeeName(fee.name)}</td>
+            <td style="text-align: right;">€${amount.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    return { additionalFeesHtml, additionalFeesTotal };
+  }
+
+  private buildDiscountSection(discount: any | null | undefined, grossListSalePrice: string | null | undefined): { discountHtml: string; discountAmount: number } {
+    let discountHtml = '';
+    let discountAmount = 0;
+
+    if (discount) {
+      const percentage = parseFloat(discount.percentage) || 0;
+      const grossAmount = parseFloat(grossListSalePrice || '0');
+      discountAmount = (grossAmount * percentage) / 100;
+      discountHtml = `
+        <tr class="discount-row">
+          <td>Rabatt (${percentage}%) - ${discount.reason || 'Kein Grund angegeben'}</td>
+          <td style="text-align: right; color: #dc3545;">-€${discountAmount.toFixed(2)}</td>
+        </tr>
+      `;
+    }
+
+    return { discountHtml, discountAmount };
+  }
+
+  private buildAdditionalDriversSection(additionalDriverRecords: any[] | null | undefined): string {
+    if (!additionalDriverRecords || additionalDriverRecords.length === 0) {
+      return '';
+    }
+
+    return `
+      <div class="section">
+        <h3>Zusätzliche Fahrer</h3>
+        <table>
+          ${additionalDriverRecords.map((driver, index) => `
+            <tr>
+              <td><strong>Fahrer ${index + 1}:</strong></td>
+              <td>${driver.personRecord.firstName} ${driver.personRecord.lastName}</td>
+            </tr>
+            <tr>
+              <td>Führerschein-Nr.:</td>
+              <td>${driver.driverRecord.licenseNumber}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    `;
+  }
+
+  private buildServicesSection(
+    carGroupName: string,
+    durationDays: number,
+    netAmount: number,
+    additionalFeesTotal: number,
+    additionalFeesHtml: string,
+    discountHtml: string
+  ): string {
     return `
       <div class="section">
         <h3>Leistungen</h3>
@@ -300,7 +352,7 @@ export class InvoiceService {
     `;
   }
 
-  private buildTotalsHtml(netAmount: number, taxRate: number, taxAmount: number, grossAmount: number): string {
+  private buildTotalsSection(netAmount: number, taxRate: number, taxAmount: number, grossAmount: number): string {
     return `
       <table class="totals-table">
         <tr>
@@ -319,7 +371,7 @@ export class InvoiceService {
     `;
   }
 
-  private buildPaymentInfoHtml(payment: any): string {
+  private buildPaymentSection(payment: any): string {
     return `
       <div class="payment-info">
         <h3>Zahlungsinformationen</h3>
@@ -347,7 +399,7 @@ export class InvoiceService {
     `;
   }
 
-  private buildNotesHtml(note: string): string {
+  private buildNotesSection(note: string): string {
     return `
       <div class="section">
         <h3>Anmerkungen</h3>
@@ -356,7 +408,7 @@ export class InvoiceService {
     `;
   }
 
-  private buildFooterHtml(): string {
+  private buildFooter(): string {
     return `
       <div class="footer">
         <p>Vibes Mobility GmbH | Musterstraße 123 | 12345 Musterstadt</p>
@@ -367,154 +419,30 @@ export class InvoiceService {
     `;
   }
 
-  private getInvoiceStyles(): string {
-    return `
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 12px;
-        line-height: 1.5;
-        color: #333;
-        padding: 20px;
-      }
-      .invoice-container {
-        max-width: 800px;
-        margin: 0 auto;
-        background: #fff;
-      }
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        border-bottom: 3px solid #1976d2;
-        padding-bottom: 20px;
-        margin-bottom: 20px;
-      }
-      .company-info h1 {
-        color: #1976d2;
-        font-size: 28px;
-        margin-bottom: 5px;
-      }
-      .company-info p {
-        color: #666;
-        font-size: 11px;
-      }
-      .invoice-details {
-        text-align: right;
-      }
-      .invoice-details h2 {
-        color: #1976d2;
-        font-size: 24px;
-        margin-bottom: 10px;
-      }
-      .invoice-details p {
-        margin: 3px 0;
-      }
-      .invoice-details strong {
-        color: #333;
-      }
-      .addresses {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 30px;
-      }
-      .address-block {
-        width: 48%;
-      }
-      .address-block h3 {
-        color: #1976d2;
-        font-size: 14px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 5px;
-        margin-bottom: 10px;
-      }
-      .section {
-        margin-bottom: 25px;
-      }
-      .section h3 {
-        color: #1976d2;
-        font-size: 14px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 5px;
-        margin-bottom: 10px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      table td {
-        padding: 8px 5px;
-        vertical-align: top;
-      }
-      .items-table {
-        margin-top: 10px;
-      }
-      .items-table th {
-        background: #1976d2;
-        color: #fff;
-        padding: 10px;
-        text-align: left;
-      }
-      .items-table th:last-child {
-        text-align: right;
-      }
-      .items-table td {
-        border-bottom: 1px solid #eee;
-      }
-      .items-table tr:hover {
-        background: #f9f9f9;
-      }
-      .totals-table {
-        width: 300px;
-        margin-left: auto;
-        margin-top: 20px;
-      }
-      .totals-table td {
-        padding: 8px 5px;
-      }
-      .totals-table .total-row {
-        font-size: 16px;
-        font-weight: bold;
-        border-top: 2px solid #1976d2;
-        color: #1976d2;
-      }
-      .discount-row td {
-        color: #dc3545;
-      }
-      .footer {
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid #ddd;
-        text-align: center;
-        color: #666;
-        font-size: 10px;
-      }
-      .payment-info {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-top: 20px;
-      }
-      .payment-info h3 {
-        margin-bottom: 10px;
-      }
-      .vehicle-info {
-        background: #e3f2fd;
-        padding: 15px;
-        border-radius: 5px;
-      }
-      @media print {
-        body {
-          padding: 0;
-        }
-        .invoice-container {
-          max-width: 100%;
-        }
-      }
-    `;
+  /**
+   * Formats a date to German locale string (DD.MM.YYYY).
+   */
+  formatDateGerman(date: Date | string): string {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  /**
+   * Formats a datetime to German locale string (DD.MM.YYYY HH:mm).
+   */
+  formatDateTimeGerman(date: Date | string): string {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+      ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /**
+   * Formats a camelCase or PascalCase string by inserting spaces before uppercase letters.
+   */
+  formatFeeName(name: string): string {
+    if (!name) return '';
+    return name.replace(/([a-z])([A-Z])/g, '$1 $2');
   }
 }
