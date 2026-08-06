@@ -49,7 +49,7 @@ export class DefaultLayoutComponent {
     {label:'Display Rental', route: '/rental-edit-exchange', icon:'edit'},
     { label: 'Check In', route: '/check-in', icon: 'check_circle_outline' },
     { label: 'Cars', icon: 'directions_car', route: '/vehicles' },
-    { label: 'Users', route: '/users-table', icon: 'group' },
+    { label: 'Users', route: '/users-table', icon: 'group', permission: 'READ_USER' },
     { label: 'Update Fees', route: '/update-fees', icon: 'attach_money' },
     { label: 'Help', route: '/help-page', icon: 'help_outline' },
   ];
