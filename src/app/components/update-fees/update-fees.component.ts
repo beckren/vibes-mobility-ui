@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { FeeService } from '../../services/fee.service';
+import { FeeService } from '../_common/_service/fee.service';
 
 @Component({
   selector: 'app-update-fees',

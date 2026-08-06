@@ -19,11 +19,28 @@ export interface Fee {
   isRequired: boolean;
 }
 
+export interface FeeRecord {
+  name: string;
+  category: 'Additional' | 'Car Group' | 'Insurance';
+  interval: 'Daily' | 'Weekly' | 'Weekend' | 'One Time';
+  amount: number;
+  capAmount: number;
+  isRequired: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class FeeService {
   constructor(private http: HttpClient) {}
+
+  getAllFees(): Observable<FeeRecord[]> {
+    return this.http.get<FeeRecord[]>(`${environment.apiUrl}/fee`);
+  }
+
+  updateFee(body: FeeRecord): Observable<FeeRecord> {
+    return this.http.post<FeeRecord>(`${environment.apiUrl}/fee/update`, body);
+  }
 
 /*   getAllAdditionalFeesByInterval(checkoutDate: string, expectedCheckinDate: string): Observable<Fee[]> {
     return this.http.get<Fee[]>(`${environment.apiUrl}/fee/additional`, {
