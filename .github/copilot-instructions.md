@@ -27,7 +27,6 @@ ng generate component components/<name> --standalone
   - `auth.guard.ts` – aktiver Route-Guard
 - `layouts/` – `default-layout`, `default-header` (Shell um die geschützten Routen)
 - `store/auth/` – NgRx auth-Slice (`actions`, `reducer`, `selectors`)
-- `services/` – **nur noch `invoice.service.ts`** (von `check-out` genutzt; übrige Alt-Duplikate wurden entfernt)
 - `shared/constants/` – statische Daten (z.B. `countries.ts`)
 - `environments/environments.ts` – `apiUrl`, `production`, `devBypassAuth`
 
@@ -85,9 +84,9 @@ Die früheren Alt-Duplikate wurden am 2026-08-06 entfernt (`services/auth.servic
 | Auth-Guard   | `components/_common/auth.guard.ts`                              |
 | Fee-Service  | `components/_common/_service/fee.service.ts`                    |
 
-**Verbleibende Altlast:** `services/invoice.service.ts` wird noch von `check-out` importiert
-(es existiert zusätzlich eine ungenutzte Kopie unter `components/_common/_service/invoice.service.ts`).
-Konsolidierung offen – bewusst noch nicht angefasst.
+**Altlast bereinigt (2026-08-06):** Der veraltete `services/`-Ordner wurde vollständig
+entfernt; `InvoiceService` (inkl. `VehicleInfo`) liegt jetzt kanonisch unter
+`components/_common/_service/invoice.service.ts` und wird von `check-out` genutzt.
 
 ## Verhaltensrichtlinien
 
