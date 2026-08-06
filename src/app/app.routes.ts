@@ -203,22 +203,6 @@ export const routes: Routes = [
           ),
         title: 'Rental Edit Exchange',
       },
-      {
-        path: 'my-role-requests',
-        loadComponent: () =>
-          import('./components/my-role-requests/my-role-requests.component').then(
-            (m) => m.MyRoleRequestsComponent
-          ),
-        title: 'My Role Requests',
-      },
-      {
-        path: 'role-request-approvals',
-        loadComponent: () =>
-          import('./components/role-request-approvals/role-request-approvals.component').then(
-            (m) => m.RoleRequestApprovalsComponent
-          ),
-        title: 'Role Request Approvals',
-      },
 
 
 

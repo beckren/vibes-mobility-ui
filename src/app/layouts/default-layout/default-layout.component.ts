@@ -37,7 +37,7 @@ interface MenuItem {
 export class DefaultLayoutComponent {
   isExpanded = false;
 
-  menuItems = [
+  menuItems: MenuItem[] = [
     { label: 'Manifest', route: '/manifest-menu', icon: 'schedule' },
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Check Out', route: '/check-out', icon: 'call_missed_outgoing' },
@@ -51,13 +51,6 @@ export class DefaultLayoutComponent {
     { label: 'Cars', icon: 'directions_car', route: '/vehicles' },
     { label: 'Users', route: '/users-table', icon: 'group' },
     { label: 'Update Fees', route: '/update-fees', icon: 'attach_money' },
-    { label: 'My Role Requests', route: '/my-role-requests', icon: 'badge' },
-    {
-      label: 'Role Approvals',
-      route: '/role-request-approvals',
-      icon: 'how_to_reg',
-      permission: 'READ_ROLE_REQUEST',
-    },
     { label: 'Help', route: '/help-page', icon: 'help_outline' },
   ];
 
