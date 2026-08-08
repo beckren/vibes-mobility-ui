@@ -724,6 +724,9 @@ components:
           example: 02/26
         cvv:
           type: string
+          description: >-
+            Card verification value. Accepted only for the authorization moment
+            and never persisted (PCI-DSS 3.2). Not stored in VM_PAYMENT.
           example: '123'
         amountOnHold:
           type: string
