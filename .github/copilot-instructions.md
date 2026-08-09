@@ -74,8 +74,8 @@ ng generate component components/<name> --standalone
 Die früheren Alt-Duplikate wurden am 2026-08-06 entfernt (`services/auth.service.ts`,
 `services/api.service.ts`, `services/fee.service.ts`, `core/interceptors/auth.interceptor.ts`,
 `components/_common/_service/auth.guard.ts`). Kanonische Quelle ist ausschließlich
-`components/_common/_service/*` bzw. `components/_common/_interceptor/` und
-`components/_common/auth.guard.ts`.
+`components/_common/_service/*` bzw. `components/_common/auth.guard.ts`; ein eigener
+Interceptor existiert nicht mehr (Bearer-Token via `includeBearerTokenInterceptor`).
 
 | Concern      | Kanonisch (in Benutzung)                                        |
 |--------------|-----------------------------------------------------------------|
