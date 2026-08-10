@@ -30,7 +30,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 
 import { UploadOptionsComponent } from '../upload-options.component';
 import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/_service/price.service';
-import { toIsoDateString } from '../_common/date.util';
+import { toIsoDateString, combineDateAndTime } from '../_common/date.util';
 import { FeeService, Fee } from '../_common/_service/fee.service';
 import { VehicleService, Vehicle } from '../_common/_service/vehicle.service';
 import {
@@ -398,26 +398,15 @@ export class CheckOutComponent implements OnInit, OnDestroy {
   }
 
   updateActualCheckOut() {
-    const date = this.checkoutDateControl.value;
-
-    const time = this.checkoutTimeControl.value;
-    if (date && time) {
-      const [hours, minutes] = time.split(':');
-      const combined = new Date(date);
-      combined.setHours(+hours);
-      combined.setMinutes(+minutes);
+    const combined = combineDateAndTime(this.checkoutDateControl.value, this.checkoutTimeControl.value);
+    if (combined) {
       this.checkoutDatetime.setValue(combined);
     }
   }
 
   updateActualCheckIn() {
-    const date = this.checkinDateControl.value;
-    const time = this.checkinTimeControl.value;
-    if (date && time) {
-      const [hours, minutes] = time.split(':');
-      const combined = new Date(date);
-      combined.setHours(+hours);
-      combined.setMinutes(+minutes);
+    const combined = combineDateAndTime(this.checkinDateControl.value, this.checkinTimeControl.value);
+    if (combined) {
       this.checkinDatetime.setValue(combined);
     }
   }

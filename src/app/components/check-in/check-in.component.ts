@@ -18,6 +18,7 @@ import { DamageService, DamageRecord } from '../_common/_service/damage.service'
 import { CheckinService, CheckinFeeInput } from '../_common/_service/checkin.service';
 import { RentalService } from '../_common/_service/rental.service';
 import { VehicleService } from '../_common/_service/vehicle.service';
+import { combineDateAndTime, parseFlexibleDate } from '../_common/date.util';
 import { ActivatedRoute } from '@angular/router';
 import { MatStepperModule } from '@angular/material/stepper';
 import {
@@ -237,50 +238,23 @@ export class CheckInComponent implements OnInit {
   }
 
   updateActualCheckOut() {
-    const date = this.actualCheckoutDateControl.value;
-    const time = this.actualCheckoutTimeControl.value;
-    if (date && time) {
-      const [hours, minutes] = time.split(':');
-      const combined = new Date(date);
-      combined.setHours(+hours);
-      combined.setMinutes(+minutes);
+    const combined = combineDateAndTime(this.actualCheckoutDateControl.value, this.actualCheckoutTimeControl.value);
+    if (combined) {
       this.checkoutDatetime.setValue(combined);
     }
   }
 
   updateActualCheckIn() {
-    const date = this.actualCheckinDateControl.value;
-    const time = this.actualCheckinTimeControl.value;
-    if (date && time) {
-      const [hours, minutes] = time.split(':');
-      const combined = new Date(date);
-      combined.setHours(+hours);
-      combined.setMinutes(+minutes);
+    const combined = combineDateAndTime(this.actualCheckinDateControl.value, this.actualCheckinTimeControl.value);
+    if (combined) {
       this.checkinDatetime.setValue(combined);
     }
   }
-  parseDate(day: string, month: string, year: string): Date | null {
-    const dd = parseInt(day, 10);
-    const mm = parseInt(month, 10) - 1;
-    const yyyy = parseInt(year, 10);
-
-    const date = new Date(yyyy, mm, dd);
-    return date && date.getDate() === dd && date.getMonth() === mm && date.getFullYear() === yyyy
-      ? date
-      : null;
-  }
 
   onFlexibleDateInput(event: any, controlName: string): void {
-    const raw = event.target.value.replace(/\D/g, '');
-    if (raw.length === 8) {
-      const day = raw.substring(0, 2);
-      const month = raw.substring(2, 4);
-      const year = raw.substring(4, 8);
-
-      const parsedDate = this.parseDate(day, month, year);
-      if (parsedDate) {
-        this.checkInForm.get(controlName)?.setValue(parsedDate);
-      }
+    const parsedDate = parseFlexibleDate(event.target.value);
+    if (parsedDate) {
+      this.checkInForm.get(controlName)?.setValue(parsedDate);
     }
   }
 

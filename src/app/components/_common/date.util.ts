@@ -31,3 +31,42 @@ export function toLocaleDateOrRaw(value: string, fallback = ''): string {
   const date = new Date(value);
   return isNaN(date.getTime()) ? value : date.toLocaleDateString();
 }
+
+/**
+ * Kombiniert ein Datum mit einer `HH:mm`-Zeit zu einem neuen `Date`.
+ * Fehlt Datum oder Zeit, wird `null` zurückgegeben (matcht das bisherige
+ * Guard-Verhalten der Check-in/Check-out/Exchange-Komponenten, die bei
+ * fehlenden Werten nichts setzten). Für gebundene Datepicker+Timepicker-Paare.
+ */
+export function combineDateAndTime(
+  date: Date | string | null | undefined,
+  time: string | null | undefined
+): Date | null {
+  if (!date || !time) {
+    return null;
+  }
+  const [hours, minutes] = time.split(':');
+  const combined = new Date(date);
+  combined.setHours(+hours, +minutes);
+  return combined;
+}
+
+/**
+ * Parst eine „flexible" Datumseingabe (`DDMMYYYY`, non-digits werden ignoriert)
+ * zu einem lokalen `Date`; ungültige/kalendarisch unmögliche Werte → `null`.
+ * Für die manuelle Schnelleingabe in den Check-in-Datumsfeldern.
+ */
+export function parseFlexibleDate(raw: string): Date | null {
+  const digits = (raw ?? '').replace(/\D/g, '');
+  if (digits.length !== 8) {
+    return null;
+  }
+  const dd = parseInt(digits.substring(0, 2), 10);
+  const mm = parseInt(digits.substring(2, 4), 10) - 1;
+  const yyyy = parseInt(digits.substring(4, 8), 10);
+
+  const date = new Date(yyyy, mm, dd);
+  return date.getDate() === dd && date.getMonth() === mm && date.getFullYear() === yyyy
+    ? date
+    : null;
+}
