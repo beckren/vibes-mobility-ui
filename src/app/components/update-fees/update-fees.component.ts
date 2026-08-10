@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { FeeService } from '../_common/_service/fee.service';
+import { FeeService, FeeRecord } from '../_common/_service/fee.service';
 
 @Component({
   selector: 'app-update-fees',
@@ -28,8 +28,8 @@ import { FeeService } from '../_common/_service/fee.service';
   styleUrls: ['./update-fees.component.scss'],
 })
 export class UpdateFeesComponent implements OnInit {
-  allFees: any[] = [];
-  feesDataSource = new MatTableDataSource<any>([]);
+  allFees: FeeRecord[] = [];
+  feesDataSource = new MatTableDataSource<FeeRecord>([]);
   displayedColumns = ['name', 'category', 'interval', 'amount', 'maxAmount', 'actions'];
   filterName = '';
   filterCategory = '';
@@ -40,7 +40,7 @@ export class UpdateFeesComponent implements OnInit {
   savingKey: string | null = null;
   editValues = { amount: 0, capAmount: 0 };
 
-  feeKey(fee: any): string {
+  feeKey(fee: FeeRecord): string {
     return `${fee.name}|${fee.interval}`;
   }
 
@@ -69,7 +69,7 @@ export class UpdateFeesComponent implements OnInit {
     });
   }
 
-  startEdit(fee: any) {
+  startEdit(fee: FeeRecord) {
     this.editingKey = this.feeKey(fee);
     this.editValues = {
       amount: fee.amount,
@@ -81,7 +81,7 @@ export class UpdateFeesComponent implements OnInit {
     this.editingKey = null;
   }
 
-  saveRow(fee: any) {
+  saveRow(fee: FeeRecord) {
     this.savingKey = this.feeKey(fee);
     const payload = {
       name: fee.name,

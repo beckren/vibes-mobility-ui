@@ -1,5 +1,8 @@
 import { RentalSearchResult } from './_service/rental.service';
 import { Vehicle } from './_service/vehicle.service';
+import { toDateKey } from './date.util';
+
+export { toDateKey };
 
 export type FleetCategory =
   | 'On Hand'
@@ -8,14 +11,6 @@ export type FleetCategory =
   | 'Stn-Inv'
   | 'Veh-Rsvd'
   | 'Available';
-
-export function toDateKey(value: Date | string): string {
-  const date = value instanceof Date ? value : new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 export function getManifestStatus(
   rental: RentalSearchResult,

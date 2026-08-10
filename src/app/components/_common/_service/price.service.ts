@@ -4,33 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environments';
 
-export interface AdditionalFee {
-  name: string;
-  amount: string;
-  amountMax: string;
-}
-
-export interface Discount {
-  percentage: string;
-  reason?: string;
-  user: string;
-}
-
-export interface PriceRequest {
-  checkoutDate: string;
-  expectedCheckinDate: string;
-  carGroupName: string;
-  targetSalePrice?: string;
-  grossListSalePrice?: string;
-  additionalFees?: AdditionalFee[];
-  discount?: Discount;
-}
-
-export interface PriceResponse {
-  netPrice: number;
-  grossPrice: number;
-  taxRate: number;
-}
+export type {
+  AdditionalFee,
+  Discount,
+  PriceRequest,
+  PriceResponse,
+} from '../_model/price.model';
+import type { PriceRequest, PriceResponse } from '../_model/price.model';
 
 @Injectable({
   providedIn: 'root'

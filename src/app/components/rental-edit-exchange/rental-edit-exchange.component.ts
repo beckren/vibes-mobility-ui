@@ -33,6 +33,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { UploadOptionsComponent } from '../upload-options.component';
 import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/_service/price.service';
+import { toIsoDateString } from '../_common/date.util';
 import { FeeService, Fee } from '../_common/_service/fee.service';
 import { VehicleService, Vehicle } from '../_common/_service/vehicle.service';
 import { RentalService, RentalSearchParams, RentalSearchResult, RentalDetail } from '../_common/_service/rental.service';
@@ -834,21 +835,21 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
       academicTitle: c.academicTitle || '',
       firstName: c.firstName || '',
       lastName: c.lastName || '',
-      dob: c.dob ? this.formatDate(c.dob) : '',
+      dob: c.dob ? toIsoDateString(c.dob) : '',
       phone: c.phone || '',
       email: c.email || '',
       addressRecord,
       idType: c.idType || '',
       idNumber: c.idNumber || '',
-      idExpiryDate: c.idExpiry ? this.formatDate(c.idExpiry) : '',
+      idExpiryDate: c.idExpiry ? toIsoDateString(c.idExpiry) : '',
       idImageBase64: this.fileMap['customer-id'] ? await this.fileToBase64(this.fileMap['customer-id']) : ''
     };
 
     const driverRecord: DriverRecord = {
       licenseNumber: c.licenseNumber || '',
       licenseCountry: c.licenseCountry || '',
-      licenseIssued: c.licenseIssued ? this.formatDate(c.licenseIssued) : '',
-      licenseExpiry: c.licenseExpiry ? this.formatDate(c.licenseExpiry) : '',
+      licenseIssued: c.licenseIssued ? toIsoDateString(c.licenseIssued) : '',
+      licenseExpiry: c.licenseExpiry ? toIsoDateString(c.licenseExpiry) : '',
       licenseImageBase64: this.fileMap['driver-license'] ? await this.fileToBase64(this.fileMap['driver-license']) : ''
     };
 
@@ -884,7 +885,7 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
         academicTitle: d.academicTitle || '',
         firstName: d.firstName || '',
         lastName: d.lastName || '',
-        dob: d.dob ? this.formatDate(d.dob) : '',
+        dob: d.dob ? toIsoDateString(d.dob) : '',
         phone: d.phone || '',
         email: d.email || '',
         addressRecord,
@@ -897,7 +898,7 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
         licenseNumber: d.licenseNumber || '',
         licenseCountry: d.licenseCountry || '',
         licenseIssued: '',
-        licenseExpiry: d.licenseExpiry ? this.formatDate(d.licenseExpiry) : '',
+        licenseExpiry: d.licenseExpiry ? toIsoDateString(d.licenseExpiry) : '',
         licenseImageBase64: this.fileMap[`additional-driver-${index + 1}-license`] ? await this.fileToBase64(this.fileMap[`additional-driver-${index + 1}-license`]) : ''
       };
       return { driverRecord, personRecord, customerNote: '' };
@@ -1103,12 +1104,6 @@ export class RentalEditExchangeComponent implements OnInit, OnDestroy {
     if (file) {
       this.fileMap[key] = file;
     }
-  }
-
-  formatDate(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
   }
 
   private fileToBase64(file: File): Promise<string> {

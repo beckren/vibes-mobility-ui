@@ -7,6 +7,7 @@ import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VehicleRentalHistoryDataSource, VehicleRentalHistoryItem } from './vehicle-rental-history-datasource';
+import { toLocaleDateOrRaw } from '../_common/date.util';
 import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -92,8 +93,7 @@ export class VehicleRentalHistoryComponent implements OnInit, AfterViewInit {
   }
 
   private formatDate(value: string): string {
-    const date = new Date(value);
-    return isNaN(date.getTime()) ? value : date.toLocaleDateString();
+    return toLocaleDateOrRaw(value);
   }
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;

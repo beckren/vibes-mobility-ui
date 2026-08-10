@@ -30,6 +30,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 
 import { UploadOptionsComponent } from '../upload-options.component';
 import { PriceService, PriceRequest, AdditionalFee, Discount } from '../_common/_service/price.service';
+import { toIsoDateString } from '../_common/date.util';
 import { FeeService, Fee } from '../_common/_service/fee.service';
 import { VehicleService, Vehicle } from '../_common/_service/vehicle.service';
 import {
@@ -856,13 +857,13 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       academicTitle: c.academicTitle || '',
       firstName: c.firstName || '',
       lastName: c.lastName || '',
-      dob: c.dob ? this.formatDate(c.dob) : '',
+      dob: c.dob ? toIsoDateString(c.dob) : '',
       phone: c.phone || '',
       email: c.email || '',
       addressRecord: addressRecord,
       idType: c.idType || '',
       idNumber: c.idNumber || '',
-      idExpiryDate: c.idExpiry ? this.formatDate(c.idExpiry) : '',
+      idExpiryDate: c.idExpiry ? toIsoDateString(c.idExpiry) : '',
       idImageBase64: this.fileMap['customer-id'] ? await this.fileToBase64(this.fileMap['customer-id']) : ''
     };
 
@@ -870,8 +871,8 @@ export class CheckOutComponent implements OnInit, OnDestroy {
     const driverRecord: DriverRecord = {
       licenseNumber: c.licenseNumber || '',
       licenseCountry: c.licenseCountry || '',
-      licenseIssued: c.licenseIssued ? this.formatDate(c.licenseIssued) : '',
-      licenseExpiry: c.licenseExpiry ? this.formatDate(c.licenseExpiry) : '',
+      licenseIssued: c.licenseIssued ? toIsoDateString(c.licenseIssued) : '',
+      licenseExpiry: c.licenseExpiry ? toIsoDateString(c.licenseExpiry) : '',
       licenseImageBase64: this.fileMap['driver-license'] ? await this.fileToBase64(this.fileMap['driver-license']) : ''
     };
 
@@ -914,13 +915,13 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         academicTitle: d.academicTitle || '',
         firstName: d.firstName || '',
         lastName: d.lastName || '',
-        dob: d.dob ? this.formatDate(d.dob) : '',
+        dob: d.dob ? toIsoDateString(d.dob) : '',
         phone: d.phone || '',
         email: d.email || '',
         addressRecord: addressRecord,
         idType: d.idType || '',
         idNumber: d.idNumber || '',
-        idExpiryDate: d.idExpiry ? this.formatDate(d.idExpiry) : '',
+        idExpiryDate: d.idExpiry ? toIsoDateString(d.idExpiry) : '',
         idImageBase64: this.fileMap[`additional-driver-${index + 1}-id`] ? await this.fileToBase64(this.fileMap[`additional-driver-${index + 1}-id`]) : ''
       };
 
@@ -928,7 +929,7 @@ export class CheckOutComponent implements OnInit, OnDestroy {
         licenseNumber: d.licenseNumber || '',
         licenseCountry: d.licenseCountry || '',
         licenseIssued: '', // Not in current form
-        licenseExpiry: d.licenseExpiry ? this.formatDate(d.licenseExpiry) : '',
+        licenseExpiry: d.licenseExpiry ? toIsoDateString(d.licenseExpiry) : '',
         licenseImageBase64: this.fileMap[`additional-driver-${index + 1}-license`] ? await this.fileToBase64(this.fileMap[`additional-driver-${index + 1}-license`]) : ''
       };
 
@@ -967,15 +968,6 @@ export class CheckOutComponent implements OnInit, OnDestroy {
       paymentStatus: p.paymentStatus || 'Pending',
       authorizationCode: p.authorizationCode || ''
     };
-  }
-
-  /**
-   * Formats a date to ISO date string (YYYY-MM-DD).
-   */
-  formatDate(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
   }
 
   /**

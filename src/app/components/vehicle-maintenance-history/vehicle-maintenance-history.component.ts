@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
+import { toLocaleDateOrRaw } from '../_common/date.util';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
@@ -87,11 +88,7 @@ export class VehicleMaintenanceHistoryComponent implements OnInit, AfterViewInit
   }
 
   private formatDate(value: string): string {
-    if (!value) {
-      return '—';
-    }
-    const date = new Date(value);
-    return isNaN(date.getTime()) ? value : date.toLocaleDateString();
+    return toLocaleDateOrRaw(value, '—');
   }
 
   applyFilter(event: Event): void {

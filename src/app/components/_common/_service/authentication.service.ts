@@ -3,6 +3,14 @@ import Keycloak from 'keycloak-js';
 
 import { User } from '../_model/user';
 
+/** Für die App relevante Keycloak-Token-Claims (Standard-OIDC + Custom `Permission`). */
+interface VmTokenClaims {
+    Permission?: string | string[];
+    given_name?: string;
+    family_name?: string;
+    email?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService {
     private readonly keycloak = inject(Keycloak);
@@ -12,7 +20,7 @@ export class AuthenticationService {
     }
 
     public get permissions(): string[] {
-        const claim = (this.keycloak.tokenParsed as any)?.Permission;
+        const claim = (this.keycloak.tokenParsed as VmTokenClaims | undefined)?.Permission;
         if (Array.isArray(claim)) {
             return claim;
         }
@@ -27,7 +35,7 @@ export class AuthenticationService {
         if (!this.keycloak.authenticated) {
             return null;
         }
-        const claims = (this.keycloak.tokenParsed ?? {}) as any;
+        const claims = (this.keycloak.tokenParsed ?? {}) as VmTokenClaims;
         return {
             firstname: claims.given_name,
             lastname: claims.family_name,
